@@ -1,11 +1,11 @@
 # List of headers
 set(MY_MD_HEADERS
-  hello.h
+  hello.h verlet.h
 )
 
 # List of implementation files
 set(MY_MD_CPP
-  hello.cpp
+  hello.cpp verlet.cpp
 )
 
 # Create a static library
