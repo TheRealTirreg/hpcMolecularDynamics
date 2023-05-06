@@ -5,6 +5,8 @@
 #ifndef CPP_MOLECULAR_DYNAMICS_VERLET_H
 #define CPP_MOLECULAR_DYNAMICS_VERLET_H
 
+const int mass = ;
+
 void verlet_step1(double &x, double &y, double &z, double &vx, double &vy, double &vz,
                   double fx, double fy, double fz, double timestep);
 
