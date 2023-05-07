@@ -8,6 +8,12 @@
 
 
 int main(int argc, char *argv[]) {
+    // initialize positions and velocities
+    double x = 0;  double y = 0;  double z = 0;
+    double vx = 1; double vy = 0; double vz = 0;
+    double fx = 1; double fy = 1; double fz = 1;
+    double timestep = 1;
+
     size_t num_steps = 10;
     std::cout << "Starting velocity-verlet-algorithm for " << num_steps << " steps\n";
 
@@ -20,11 +26,14 @@ int main(int argc, char *argv[]) {
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 #endif
 
-    for (int i = 0; i < num_steps; i++) {
-        std::cout << "Step " << i << "\n";
-        // verlet_step1();
+    for (size_t i = 0; i < num_steps; i++) {
+        verlet_step1(x, y, z, vx, vy, vz, fx, fy, fz, timestep);
         // compute forces
-        // verlet_step2();
+        verlet_step2(vx, vy, vz, fx, fy, fz, timestep);
+        std::cout << "Step " << i << " done:\n"
+                  << x << "\t" << vx << "\t" << fx << "\t" << "\n"
+                  << y << "\t" << vy << "\t" << fy << "\t" << "\n"
+                  << z << "\t" << vz << "\t" << fz << "\t" << "\n";
     }
 
 #ifdef USE_MPI
