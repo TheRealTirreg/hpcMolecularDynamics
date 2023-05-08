@@ -1,5 +1,6 @@
-#include "verlet.h"
 #include <iostream>
+#include "verlet.h"
+#include "types.h"
 
 #ifdef USE_MPI
 #include <mpi.h>
@@ -7,10 +8,19 @@
 
 
 int main(int argc, char *argv[]) {
-    // initialize positions and velocities
-    double x = 0;  double y = 0;  double z = 0;
-    double vx = 1; double vy = 0; double vz = 0;
-    double fx = 1; double fy = 1; double fz = 1;
+    size_t num_atoms = 10;
+
+    Positions_t positions(3, num_atoms);
+    positions.setZero();
+
+    Velocities_t velocities(3, num_atoms);
+    velocities.setZero();
+    velocities(0, 0) = 1;
+
+    Forces_t forces(3, num_atoms);
+    forces.setZero();
+    forces.row(0).setOnes();
+
     double timestep = 1;
 
     size_t num_steps = 10;
@@ -26,13 +36,13 @@ int main(int argc, char *argv[]) {
 #endif
 
     for (size_t i = 0; i < num_steps; i++) {
-        verlet_step1(x, y, z, vx, vy, vz, fx, fy, fz, timestep);
+        verlet_step1(positions, velocities, forces, timestep);
         // compute forces
-        verlet_step2(vx, vy, vz, fx, fy, fz, timestep);
+        verlet_step2(velocities, forces, timestep);
         std::cout << "Step " << i << " done:\n"
-                  << x << "\t" << vx << "\t" << fx << "\t" << "\n"
-                  << y << "\t" << vy << "\t" << fy << "\t" << "\n"
-                  << z << "\t" << vz << "\t" << fz << "\t" << "\n";
+                  << "Positions:\n" << positions << "\n\n"
+                  << "Velocities:\n" << velocities << "\n\n"
+                  << "Forces:\n" << forces << "\n\n";
     }
 
 #ifdef USE_MPI
