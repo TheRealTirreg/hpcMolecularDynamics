@@ -6,7 +6,7 @@
 #endif
 
 
-int main(int argc, char *argv[]) {
+int main() {
     // initialize positions and velocities
     double x = 0;  double y = 0;  double z = 0;
     double vx = 1; double vy = 0; double vz = 0;

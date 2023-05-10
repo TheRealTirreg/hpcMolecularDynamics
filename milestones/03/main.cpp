@@ -7,19 +7,25 @@
 #endif
 
 
-int main(int argc, char *argv[]) {
+int main() {
     size_t num_atoms = 10;
 
     Positions_t positions(3, num_atoms);
-    positions.setZero();
+    positions.setRandom();
 
     Velocities_t velocities(3, num_atoms);
-    velocities.setZero();
+    velocities.setRandom();
     velocities(0, 0) = 1;
 
     Forces_t forces(3, num_atoms);
-    forces.setZero();
+    forces.setRandom();
     forces.row(0).setOnes();
+
+    Masses_t masses(num_atoms);
+    masses.setRandom();
+    masses = masses.abs();  // masses cannot be negative
+
+    Acceleration_t accelerations = forces.rowwise() / masses.transpose();
 
     double timestep = 1;
 
@@ -36,13 +42,15 @@ int main(int argc, char *argv[]) {
 #endif
 
     for (size_t i = 0; i < num_steps; i++) {
-        verlet_step1(positions, velocities, forces, timestep);
+        verlet_step1(positions, velocities, accelerations, timestep);
         // compute forces
-        verlet_step2(velocities, forces, timestep);
+        verlet_step2(velocities, accelerations, timestep);
         std::cout << "Step " << i << " done:\n"
                   << "Positions:\n" << positions << "\n\n"
                   << "Velocities:\n" << velocities << "\n\n"
-                  << "Forces:\n" << forces << "\n\n";
+                  << "Forces:\n" << forces << "\n\n"
+                  << "Masses:\n" << masses.transpose() << "\n\n"
+                  << "Accelerations:\n" << accelerations << "\n\n";
     }
 
 #ifdef USE_MPI

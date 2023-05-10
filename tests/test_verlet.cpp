@@ -218,6 +218,9 @@ TEST(Verlet, AnalyticEigen) {
     Velocities_t analytical_v = a0 * t + v0;
     Positions_t analytical_r = 0.5 * a0 * t_squared + v0 * t + r0;
 
-    ASSERT_TRUE(velocities.isApprox(analytical_v));
-    ASSERT_TRUE(positions.isApprox(analytical_r));
+    for (size_t i = 0; i < num_atoms; i++) {
+        EXPECT_NEAR(positions(0, i), analytical_r(0, i), 1e-10);
+        EXPECT_NEAR(positions(1, i), analytical_r(1, i), 1e-10);
+        EXPECT_NEAR(positions(2, i), analytical_r(2, i), 1e-10);
+    }
 }
