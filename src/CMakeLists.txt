@@ -1,6 +1,6 @@
 # List of headers
 set(MY_MD_HEADERS
-  hello.h verlet.h types.h
+  hello.h verlet.h types.h atoms.h
 )
 
 # List of implementation files
