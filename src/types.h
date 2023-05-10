@@ -10,5 +10,7 @@
 typedef Eigen::Array3Xd Positions_t;
 typedef Eigen::Array3Xd Velocities_t;
 typedef Eigen::Array3Xd Forces_t;
+typedef Eigen::ArrayXd  Masses_t;
+typedef Eigen::Array3Xd Acceleration_t;
 
 #endif // MY_MD_CODE_TYPES_H

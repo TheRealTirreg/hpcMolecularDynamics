@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
     // initialize positions and velocities
     double x = 0;  double y = 0;  double z = 0;
     double vx = 1; double vy = 0; double vz = 0;
-    double fx = 1; double fy = 1; double fz = 1;
+    double fx = -1; double fy = 1; double fz = 1;
     double timestep = 1;
 
     size_t num_steps = 10;

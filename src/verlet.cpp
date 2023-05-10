@@ -29,12 +29,13 @@ void verlet_step2(double &vx, double &vy, double &vz, double fx, double fy, doub
 
 
 void verlet_step1(Positions_t &positions, Velocities_t &velocities,
-                  const Forces_t &forces, double timestep) {
-    velocities = velocities + 0.5 * forces * timestep * MASS_RECIPROKE;
+                  const Acceleration_t &accelerations,
+                  double timestep) {
+    velocities = velocities + 0.5 * accelerations * timestep;
     positions = positions + velocities * timestep;
 }
 
-void verlet_step2(Velocities_t &velocities, const Forces_t &forces,
+void verlet_step2(Velocities_t &velocities, const Acceleration_t &accelerations,
                   double timestep) {
-    velocities = velocities + 0.5 * forces * timestep * MASS_RECIPROKE;
+    velocities = velocities + 0.5 * accelerations * timestep;
 }
