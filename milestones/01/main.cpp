@@ -7,7 +7,7 @@
 #endif
 
 
-int main(int argc, char *argv[]) {
+int main() {
     int rank = 0, size = 1;
 
     // Below is some MPI code, try compiling with `cmake -DUSE_MPI=ON ..`

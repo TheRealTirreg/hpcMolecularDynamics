@@ -19,7 +19,6 @@ int main() {
 
     Forces_t forces(3, num_atoms);
     forces.setRandom();
-    forces.row(0).setOnes();
 
     Masses_t masses(num_atoms);
     masses.setRandom();
