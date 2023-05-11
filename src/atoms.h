@@ -14,11 +14,17 @@ class Atoms {
     Velocities_t velocities;
     Forces_t forces;
 
-    Atoms(const size_t nb_atoms) :
+    Atoms(const size_t nb_atoms, bool randomize = false) :
           positions{3, nb_atoms}, velocities{3, nb_atoms}, forces{3, nb_atoms} {
-        positions.setZero();
-        velocities.setZero();
-        forces.setZero();
+        if (randomize) {
+            positions.setRandom();
+            velocities.setRandom();
+            forces.setRandom();
+        } else {
+            positions.setZero();
+            velocities.setZero();
+            forces.setZero();
+        }
     }
 
     explicit Atoms(const Positions_t &p) :
