@@ -19,7 +19,7 @@ set(MY_TESTS_HEADERS
 )
 
 set(MY_TESTS_CPP
-  test_hello_world.cpp test_verlet.cpp
+  test_hello_world.cpp test_verlet.cpp test_lj_direct_summation.cpp
 )
 
 # Creating the test executable

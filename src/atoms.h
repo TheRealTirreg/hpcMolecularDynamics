@@ -14,7 +14,14 @@ class Atoms {
     Velocities_t velocities;
     Forces_t forces;
 
-    Atoms(const Positions_t &p) :
+    Atoms(const size_t nb_atoms) :
+          positions{3, nb_atoms}, velocities{3, nb_atoms}, forces{3, nb_atoms} {
+        positions.setZero();
+        velocities.setZero();
+        forces.setZero();
+    }
+
+    explicit Atoms(const Positions_t &p) :
           positions{p}, velocities{3, p.cols()}, forces{3, p.cols()} {
         velocities.setZero();
         forces.setZero();
