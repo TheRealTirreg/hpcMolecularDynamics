@@ -1,10 +1,10 @@
-cmake_minimum_required(VERSION 3.0)
-set(CMAKE_CXX_STANDARD 17)
-project(cpp_hpc_examples)
+cmake_minimum_required(VERSION 3.14)
 include(FetchContent)
 
-# Link to eigen (also sets the includes)
-find_package(Eigen3 3.4.0 NO_MODULE)
+project(cpp_hpc_examples)
+
+# Try to find Eigen if it is installed
+find_package(Eigen3 3.4.0 EXACT NO_MODULE)
 
 # If not installed, fetch Eigen from the web
 if(NOT Eigen3_FOUND)
@@ -14,6 +14,7 @@ if(NOT Eigen3_FOUND)
             Eigen3
             URL https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz
             URL_HASH SHA256=8586084f71f9bde545ee7fa6d00288b264a2b7ac3607b974e54d13e7162c1c72
+            DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     )
 
     # We are not using FetchContent_MakeAvailable since that pulls in all
@@ -33,13 +34,17 @@ if(NOT Eigen3_FOUND)
     find_package(Eigen3 3.4.0 REQUIRED MODULE EXACT)
 endif()
 
-link_libraries(Eigen3::Eigen)
+# Adding local version of benchmark
+set(BENCHMARK_DOWNLOAD_DEPENDENCIES ON)
+set(BENCHMARK_ENABLE_GTEST_TESTS OFF)
+set(BENCHMARK_ENABLE_TESTING OFF)
+FetchContent_Declare(
+        benchmark
+        URL https://github.com/google/benchmark/archive/refs/tags/v1.8.0.tar.gz
+        URL_HASH SHA256=ea2e94c24ddf6594d15c711c06ccd4486434d9cf3eca954e2af8a20c88f9f172
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+FetchContent_MakeAvailable(benchmark)
 
-add_compile_options(-Wall -Wextra -Wpedantic)
-add_compile_options(-fsanitize=address)
-add_link_options(-fsanitize=address)
-
-add_executable(nullpointer nullpointer.cpp)
-add_executable(localaddress localaddress.cpp)
-add_executable(outofbounds outofbounds.cpp)
-add_executable(signedintegers signedintegers.cpp)
+add_executable(bench gemv_benchmarks.cpp)
+target_link_libraries(bench Eigen3::Eigen benchmark::benchmark)

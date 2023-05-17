@@ -9,12 +9,12 @@
 
 
 int main() {
-    size_t num_atoms = 10;
+    size_t num_atoms = 4;
     Atoms atoms = Atoms(num_atoms, true);
 
     double energy{lj_direct_summation(atoms)};
 
-    std::cout << "Energy: " << energy << "\n";
+    std::cout << "Total Energy: " << energy << "\n";
 
     return 0;
 }
