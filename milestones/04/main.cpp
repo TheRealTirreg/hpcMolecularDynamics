@@ -11,8 +11,8 @@ int main() {
     Atoms atoms = Atoms(num_atoms, true);
      */
 
-    auto [names, positions, velocities]{read_xyz_with_velocities("../milestones/04/"
-                                                                 "lj54.xyz")};
+    auto [names, positions, velocities]
+        {read_xyz_with_velocities("milestones/04/lj54.xyz")};
     Atoms atoms = Atoms(Positions_t(positions), Velocities_t(velocities));
 
     double energy{lj_direct_summation(atoms)};
