@@ -14,7 +14,7 @@ double lj_potential(double r, double epsilon, double sigma) {
 }
 
 double lj_direct_summation(Atoms &atoms, double epsilon, double sigma) {
-    double energy = 0;
+    double total_energy = 0;
     long idx_write = 0;
     long idx_read = 0;
 
@@ -36,15 +36,15 @@ double lj_direct_summation(Atoms &atoms, double epsilon, double sigma) {
 
                 potentials(idx_write++) = potential;
                 //std::cout << "In:  (" << i << ", " << j << "): " << potentials(idx_write-1) << "\n";
-                energy += potential;
+                total_energy += potential;
             }
             // Exclude i == j
             else if (i > j) {
-                energy -= potentials(idx_read++);
+                total_energy -= potentials(idx_read++);
                 //std::cout << "Out: (" << i << ", " << j << "): " << -potentials(idx_read-1) << "\n";
             }
         }
     }
 
-    return energy;
+    return total_energy;
 }
