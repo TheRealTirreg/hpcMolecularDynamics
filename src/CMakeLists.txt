@@ -5,7 +5,7 @@ set(MY_MD_HEADERS
 
 # List of implementation files
 set(MY_MD_CPP
-  hello.cpp verlet.cpp lj_direction_summation.cpp xyz.cpp)
+  hello.cpp verlet.cpp atoms.cpp lj_direction_summation.cpp xyz.cpp)
 
 # Create a static library
 add_library(my_md_lib STATIC ${MY_MD_CPP} ${MY_MD_HEADERS})

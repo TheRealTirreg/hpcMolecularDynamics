@@ -206,7 +206,7 @@ TEST(Verlet, AnalyticEigen) {
     // Get verlet values
     for (int i = 0; i < num_timesteps; i++) {
         verlet_step1(positions, velocities, accelerations, timestep);
-        // todo compute forces here
+        // practically, compute forces here
         verlet_step2(velocities, accelerations, timestep);
     }
 

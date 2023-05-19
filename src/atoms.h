@@ -14,34 +14,13 @@ class Atoms {
     Velocities_t velocities;
     Forces_t forces;
 
-    Atoms(const size_t nb_atoms, bool randomize = false) :
-          positions{3, nb_atoms}, velocities{3, nb_atoms}, forces{3, nb_atoms} {
-        if (randomize) {
-            positions.setRandom();
-            velocities.setRandom();
-            forces.setRandom();
-        } else {
-            positions.setZero();
-            velocities.setZero();
-            forces.setZero();
-        }
-    }
+    explicit Atoms(size_t nb_atoms, bool randomize = false);
+    explicit Atoms(const Positions_t &p);
+    Atoms(const Positions_t &p, const Velocities_t &v);
 
-    explicit Atoms(const Positions_t &p) :
-          positions{p}, velocities{3, p.cols()}, forces{3, p.cols()} {
-        velocities.setZero();
-        forces.setZero();
-    }
-
-    Atoms(const Positions_t &p, const Velocities_t &v) :
-          positions{p}, velocities{v}, forces{3, p.cols()} {
-        assert(p.cols() == v.cols());
-        forces.setZero();
-    }
-
-    size_t nb_atoms() const {
-        return positions.cols();
-    }
+    [[nodiscard]] size_t nb_atoms() const;
+    [[nodiscard]] double e_kin(double mass = 1) const;
+    [[nodiscard]] double temperature(double mass = 1) const;
 };
 
 #endif // MY_MD_CODE_ATOMS_H
