@@ -6,18 +6,19 @@
 
 
 double lj_direct_summation(Atoms &atoms, double epsilon, double sigma) {
+    const long n = (long)atoms.nb_atoms();
     double total_energy = 0;
     atoms.forces.setZero();
 
-    for (long i = 0; i < (long)atoms.nb_atoms(); i++) {
-        for (long j = i + 1; j < (long)atoms.nb_atoms(); j++) {
+    for (long i = 0; i < n; i++) {
+        for (long j = i + 1; j < n; j++) {
             // Get distance r_ij
-            Eigen::Vector3d r1(atoms.positions.col(i));
-            Eigen::Vector3d r2(atoms.positions.col(j));
-            double distance = (r2 - r1).norm();
+            const Eigen::Vector3d r1(atoms.positions.col(i));
+            const Eigen::Vector3d r2(atoms.positions.col(j));
+            const double distance = (r2 - r1).norm();
 
             // Add E_{pot} for r_ij to total potential energy
-            double pow_6 = std::pow(sigma / distance, 6);
+            const double pow_6 = std::pow(sigma / distance, 6);
             total_energy += 4 * epsilon * (pow_6 * pow_6 - pow_6);
 
             // Calculate forces (which is -∇_j E_{pot}).
@@ -25,11 +26,45 @@ double lj_direct_summation(Atoms &atoms, double epsilon, double sigma) {
             // Here, the chain rule is used for forceDirection:
             // V being pair interaction energy between i and j
             // f_k = -δE_{pot}/δr_k = \sum_{i<j} δV/δr_ij * dist_normalized_ij
-            double force = 24 * epsilon / distance * (pow_6 - 2 * pow_6 * pow_6);
+            const double force = 24 * epsilon / distance * (pow_6 - 2 * pow_6 * pow_6);
             Eigen::Array3d forceDirection = force * (r2 - r1).normalized();
             atoms.forces.col(i) += forceDirection;
             atoms.forces.col(j) -= forceDirection;
         }
+    }
+
+    return total_energy;
+}
+
+double lj_direct_summation_vectorized(Atoms &atoms, double epsilon, double sigma) {
+    double total_energy = 0;
+    atoms.forces.setZero();
+
+    const long n = (long)atoms.nb_atoms();
+
+    for (long i = 0; i < n; i++) {
+        const Eigen::Array3d r_i = atoms.positions.col(i);
+        const Eigen::Array3Xd r_js = atoms.positions.rightCols(n - i - 1);
+
+        // Compute distances between r_i and all r_js with j > i elements
+        const Eigen::Array3Xd directions = r_js.colwise() - r_i;
+        const Eigen::ArrayXd distances = directions.colwise().norm();
+
+        // Compute pair interaction energies for r_ij
+        const Eigen::ArrayXd pow_6 = (sigma / distances).pow(6);
+        const Eigen::ArrayXd pair_energies = 4 * epsilon * (pow_6 * pow_6 - pow_6);
+
+        // Add to total potential energy
+        total_energy += pair_energies.sum();
+
+        // Compute forces
+        const Eigen::ArrayXd force_factor = 24 * epsilon / distances * (pow_6 - 2 * pow_6 * pow_6);
+        const Eigen::Array3Xd force_directions = directions.colwise() / distances;  // Normalize
+        const Eigen::Array3Xd forces = (force_factor * force_directions.colwise()).colwise().sum();
+
+        // Update forces
+        atoms.forces.col(i) += forces;
+        atoms.forces.rightCols(0, i + 1, 3, n - i - 1) -= forces.replicate(1, n - i - 1);
     }
 
     return total_energy;
