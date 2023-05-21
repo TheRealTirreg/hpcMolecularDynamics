@@ -31,7 +31,6 @@ int main() {
     while (current_time < total_time) {
         // Write to file
         if (write_counter == write_every_n_steps) {
-            std::cout << "Writing...\n";
             write_xyz(traj, atoms);
         }
 

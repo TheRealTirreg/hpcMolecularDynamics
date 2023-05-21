@@ -58,13 +58,13 @@ double lj_direct_summation_vectorized(Atoms &atoms, double epsilon, double sigma
         total_energy += pair_energies.sum();
 
         // Compute forces
-        const Eigen::ArrayXd force_factor = 24 * epsilon / distances * (pow_6 - 2 * pow_6 * pow_6);
-        const Eigen::Array3Xd force_directions = directions.colwise() / distances;  // Normalize
-        const Eigen::Array3Xd forces = (force_factor * force_directions.colwise()).colwise().sum();
+        const Eigen::ArrayXd force_factor = 24 * epsilon / distances * (pow_6 - 2 * pow_6.pow(2));
+        const Eigen::Array3Xd force_directions = directions.colwise().normalized();  // Normalize
+        const Eigen::Array3Xd forces = force_directions.rowwise() * force_factor.transpose(); // force_factor * force_directions.colwise();
 
         // Update forces
-        atoms.forces.col(i) += forces;
-        atoms.forces.rightCols(0, i + 1, 3, n - i - 1) -= forces.replicate(1, n - i - 1);
+        atoms.forces.rightCols(n - i - 1) -= forces;
+        atoms.forces.col(i) += forces.rowwise().sum();
     }
 
     return total_energy;
