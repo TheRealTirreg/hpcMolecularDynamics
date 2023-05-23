@@ -5,7 +5,8 @@
 #ifndef MY_MD_CODE_WRITE_FILE_H
 #define MY_MD_CODE_WRITE_FILE_H
 
+#include <fstream>
 
-void write_energy(std::ofstream &file, double energy)
+void write_energy(std::ofstream &file, double epot, double ekin);
 
 #endif // MY_MD_CODE_WRITE_FILE_H

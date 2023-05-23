@@ -3,6 +3,7 @@
 #include "lj_direction_summation.h"
 #include "verlet.h"
 #include "xyz.h"
+#include "write_file.h"
 #include <iostream>
 
 
@@ -18,12 +19,15 @@ int main() {
     double timestep = 0.001 * std::sqrt(mass * sigma * sigma / epsilon);
     double total_time = 100 * std::sqrt(mass * sigma * sigma / epsilon);
 
+    double e_pot = 0;
+
     double current_time = 0;
 
     int write_every_n_steps = 100;
     int write_counter = 0;
 
-    std::ofstream traj("milestones/04/ovito/traj.xyz");
+        std::ofstream traj("milestones/04/ovito/traj.xyz");
+        std::ofstream energy("milestones/04/ovito/energy.csv");
 
     // Initialize forces
     lj_direct_summation_vectorized(atoms, epsilon, sigma);
@@ -32,6 +36,7 @@ int main() {
         // Write to file
         if (write_counter == write_every_n_steps) {
             write_xyz(traj, atoms);
+            write_energy(energy, e_pot, atoms.e_kin());
         }
 
         // Verlet step 1
@@ -39,7 +44,7 @@ int main() {
         verlet_step1(atoms.positions, atoms.velocities, acceleration, timestep);
 
         // Update forces
-        double e_pot = lj_direct_summation_vectorized(atoms, epsilon, sigma);
+        e_pot = lj_direct_summation_vectorized(atoms, epsilon, sigma);
 
         // Debug print
         if (write_counter == write_every_n_steps) {
