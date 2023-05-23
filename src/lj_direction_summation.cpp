@@ -59,8 +59,8 @@ double lj_direct_summation_vectorized(Atoms &atoms, double epsilon, double sigma
 
         // Compute forces
         const Eigen::ArrayXd force_factor = 24 * epsilon / distances * (pow_6 - 2 * pow_6.pow(2));
-        const Eigen::Array3Xd force_directions = directions.colwise().normalized();  // Normalize
-        const Eigen::Array3Xd forces = force_directions.rowwise() * force_factor.transpose(); // force_factor * force_directions.colwise();
+        const Eigen::Array3Xd force_directions = directions.colwise().normalized();
+        const Eigen::Array3Xd forces = force_directions.rowwise() * force_factor.transpose();
 
         // Update forces
         atoms.forces.rightCols(n - i - 1) -= forces;

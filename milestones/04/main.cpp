@@ -20,13 +20,13 @@ int main() {
 
     double current_time = 0;
 
-    int write_every_n_steps = 1000;
+    int write_every_n_steps = 100;
     int write_counter = 0;
 
     std::ofstream traj("milestones/04/ovito/traj.xyz");
 
     // Initialize forces
-    lj_direct_summation(atoms, epsilon, sigma);
+    lj_direct_summation_vectorized(atoms, epsilon, sigma);
 
     while (current_time < total_time) {
         // Write to file
@@ -39,7 +39,7 @@ int main() {
         verlet_step1(atoms.positions, atoms.velocities, acceleration, timestep);
 
         // Update forces
-        double e_pot = lj_direct_summation(atoms, epsilon, sigma);
+        double e_pot = lj_direct_summation_vectorized(atoms, epsilon, sigma);
 
         // Debug print
         if (write_counter == write_every_n_steps) {
