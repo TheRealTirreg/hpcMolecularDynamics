@@ -69,3 +69,31 @@ double lj_direct_summation_vectorized(Atoms &atoms, double epsilon, double sigma
 
     return total_energy;
 }
+
+double lj_direct_summation_vectorized_comparism(Atoms &atoms, double epsilon, double sigma) {
+    double total_energy = 0;
+    atoms.forces.setZero();
+
+    const long n = (long)atoms.nb_atoms();
+
+    for (long i = 0; i < n; i++) {
+        // Compute distances between r_i and all r_js with j > i elements
+        const Eigen::Array3Xd directions = atoms.positions.rightCols(n - i - 1).colwise() - atoms.positions.col(i);
+        const Eigen::ArrayXd  distances = directions.colwise().norm();
+        const Eigen::Array3Xd force_directions = directions.colwise().normalized();
+
+        // Compute pair interaction energies for r_ij
+        const Eigen::ArrayXd pow_6 = (sigma / distances).pow(6);
+        total_energy += 4 * epsilon * (pow_6 * pow_6 - pow_6).sum();
+
+        // Compute forces
+        const Eigen::ArrayXd  force_factor = 24 * epsilon / distances * (pow_6 - 2 * pow_6.pow(2));
+        const Eigen::Array3Xd forces = force_directions.rowwise() * force_factor.transpose();
+
+        // Update forces
+        atoms.forces.rightCols(n - i - 1) -= forces;
+        atoms.forces.col(i) += forces.rowwise().sum();
+    }
+
+    return total_energy;
+}

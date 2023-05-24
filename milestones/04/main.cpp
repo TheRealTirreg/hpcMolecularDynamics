@@ -23,14 +23,16 @@ int main() {
 
     double current_time = 0;
 
-    int write_every_n_steps = 100;
+    int write_every_n_steps = 1000;
     int write_counter = 0;
 
-        std::ofstream traj("milestones/04/ovito/traj.xyz");
-        std::ofstream energy("milestones/04/ovito/energy.csv");
+    std::ofstream traj("milestones/04/ovito/traj.xyz");
+    std::ofstream energy("milestones/04/ovito/energy.csv");
 
     // Initialize forces
-    lj_direct_summation_vectorized(atoms, epsilon, sigma);
+    e_pot = lj_direct_summation(atoms, epsilon, sigma);
+    std::cout << current_time << "/" << total_time << "\tForces: " << atoms.forces.col(0).transpose() << "\tPot energy: " << e_pot << "\tKin energy: " << atoms.e_kin() << "\tTotal energy: " << e_pot + atoms.e_kin() << "\n";
+
 
     while (current_time < total_time) {
         // Write to file
@@ -44,7 +46,11 @@ int main() {
         verlet_step1(atoms.positions, atoms.velocities, acceleration, timestep);
 
         // Update forces
-        e_pot = lj_direct_summation_vectorized(atoms, epsilon, sigma);
+        e_pot = lj_direct_summation(atoms, epsilon, sigma);
+
+        // Verlet step 2
+        acceleration = atoms.forces / mass;
+        verlet_step2(atoms.velocities, acceleration, timestep);
 
         // Debug print
         if (write_counter == write_every_n_steps) {
@@ -52,10 +58,6 @@ int main() {
             std::cout << current_time << "/" << total_time << "\tForces: " << atoms.forces.col(0).transpose() << "\tPot energy: " << e_pot << "\tKin energy: " << atoms.e_kin() << "\tTotal energy: " << e_pot + atoms.e_kin() << "\n";
             write_counter = 0;
         }
-
-        // Verlet step 2
-        acceleration = atoms.forces / mass;
-        verlet_step2(atoms.velocities, acceleration, timestep);
 
         // increment time
         current_time += timestep;
