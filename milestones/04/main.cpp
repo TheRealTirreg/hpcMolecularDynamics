@@ -30,7 +30,7 @@ int main() {
     std::ofstream energy("milestones/04/ovito/energy.csv");
 
     // Initialize forces
-    e_pot = lj_direct_summation(atoms, epsilon, sigma);
+    e_pot = lj_direct_summation_vectorized_comparism(atoms, epsilon, sigma);
     std::cout << current_time << "/" << total_time << "\tForces: " << atoms.forces.col(0).transpose() << "\tPot energy: " << e_pot << "\tKin energy: " << atoms.e_kin() << "\tTotal energy: " << e_pot + atoms.e_kin() << "\n";
 
 
@@ -46,7 +46,7 @@ int main() {
         verlet_step1(atoms.positions, atoms.velocities, acceleration, timestep);
 
         // Update forces
-        e_pot = lj_direct_summation(atoms, epsilon, sigma);
+        e_pot = lj_direct_summation_vectorized_comparism(atoms, epsilon, sigma);
 
         // Verlet step 2
         acceleration = atoms.forces / mass;
