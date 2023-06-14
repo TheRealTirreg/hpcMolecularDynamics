@@ -13,6 +13,8 @@ typedef Eigen::Array3Xd Forces_t;
 typedef Eigen::ArrayXd  Masses_t;
 typedef Eigen::Array3Xd Acceleration_t;
 typedef std::vector<std::string> Names_t;
+typedef Eigen::ArrayXi NeighborList_t;
+typedef std::vector<std::string> Names_t;
 
 
 #endif // MY_MD_CODE_TYPES_H

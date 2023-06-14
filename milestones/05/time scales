@@ -1,0 +1,7 @@
+good values:
+\delta t = 0.5fs  (timestep)
+\tau_{CH} = 10fs  (Atomic bond between C and H)
+\tau_T = 1ps  (Temperature)
+\tau_B = 10ps (Pressure)
+
+\delta t << \tau_{CH} << \tau_T << \tau_B

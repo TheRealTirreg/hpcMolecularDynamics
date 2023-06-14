@@ -29,46 +29,30 @@
 
 class NeighborList {
  public:
-   NeighborList();
+   NeighborList(double cutoff_range);
 
    /*
     * Update neighbor list from the particle positions stores in the `atoms`
     * argument
     */
    const std::tuple<const Eigen::ArrayXi &, const Eigen::ArrayXi &>
-   update(const Atoms &atoms, double cutoff);
+   update(const Atoms &atoms);
 
    /*
     * Return internal seed and neighbor arrays
     */
-   const std::tuple<const Eigen::ArrayXi &, const Eigen::ArrayXi &>
-   neighbors() const {
-       if (seed_.size() > 0) {
-           return {seed_, neighbors_};
-       } else {
-           throw std::runtime_error(
-               "Neighbor list not yet computed. Use `update` to compute it.");
-       }
-   }
+   [[nodiscard]] const std::tuple<const Eigen::ArrayXi &, const Eigen::ArrayXi &> neighbors() const;
 
    /*
     * Return the total number of neighbors found by the last call to `update`
     */
-   int nb_neighbors() const {
-       // Note that the length of the `neighbor_` array can be longer than the
-       // total number of neighbors!
-       return seed_(seed_.size() - 1);
-   }
+   [[nodiscard]] int nb_neighbors() const;
 
    /*
     * Return the number of neighbors of atom `i` found by the last call to
     * `update`
     */
-   int nb_neighbors(int i) const {
-       assert(i >= 0);
-       assert(i < seed_.size());
-       return seed_(i + 1) - seed_(i);
-   }
+   [[nodiscard]] int nb_neighbors(int i) const;
 
    class iterator {
        // Defining types to be used in std::iterator_traits
@@ -159,6 +143,7 @@ class NeighborList {
 
    Eigen::ArrayXi seed_;
    Eigen::ArrayXi neighbors_;
+   double cutoff_;
 };
 
 #endif  // YAMD_NEIGHBORS_H
