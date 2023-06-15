@@ -1,0 +1,64 @@
+--------------------- not vectorized --------------------------
+ Performance counter stats for './cmake-build-release/milestones/04/04':
+
+          2,945.17 msec task-clock:u              #    1.000 CPUs utilized
+                 0      context-switches:u        #    0.000 /sec
+                 0      cpu-migrations:u          #    0.000 /sec
+               134      page-faults:u             #   45.498 /sec
+    13,646,375,864      cycles:u                  #    4.633 GHz
+    31,084,364,347      instructions:u            #    2.28  insn per cycle
+     2,278,692,454      branches:u                #  773.704 M/sec
+         2,824,251      branch-misses:u           #    0.12% of all branches
+
+       2.945468864 seconds time elapsed
+
+       2.939625000 seconds user
+       0.003328000 seconds sys
+
+time: real    0m2.895s
+      user    0m2.890s
+      sys     0m0.004s
+
+
+-------------------------------- vectorized -----------------------
+ Performance counter stats for './cmake-build-release/milestones/04/04':
+
+          3,289.12 msec task-clock:u              #    1.000 CPUs utilized
+                 0      context-switches:u        #    0.000 /sec
+                 0      cpu-migrations:u          #    0.000 /sec
+               158      page-faults:u             #   48.037 /sec
+    15,249,354,452      cycles:u                  #    4.636 GHz
+    44,245,113,953      instructions:u            #    2.90  insn per cycle
+     5,116,919,786      branches:u                #    1.556 G/sec
+         4,287,224      branch-misses:u           #    0.08% of all branches
+
+       3.289459240 seconds time elapsed
+
+       3.283337000 seconds user
+       0.003334000 seconds sys
+
+time: real    0m3.238s
+      user    0m3.159s
+      sys     0m0.039s
+
+
+-------------------------------- vectorized improved -----------------------
+ Performance counter stats for './cmake-build-release/milestones/04/04':
+
+          2,967.88 msec task-clock:u              #    1.000 CPUs utilized
+                 0      context-switches:u        #    0.000 /sec
+                 0      cpu-migrations:u          #    0.000 /sec
+               152      page-faults:u             #   51.215 /sec
+    13,759,706,690      cycles:u                  #    4.636 GHz
+    41,696,601,777      instructions:u            #    3.03  insn per cycle
+     4,566,849,073      branches:u                #    1.539 G/sec
+         1,542,466      branch-misses:u           #    0.03% of all branches
+
+       2.968579497 seconds time elapsed
+
+       2.959378000 seconds user
+       0.006667000 seconds sys
+
+time: real    0m3.033s
+      user    0m3.002s
+      sys     0m0.010s
