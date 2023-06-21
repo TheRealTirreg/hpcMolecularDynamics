@@ -55,7 +55,7 @@ int main() {
         // Debug print
         if (write_counter == write_every_n_steps) {
             // Compute total energy in the system
-            std::cout << current_time << "/" << total_time << "\tForces: " << atoms.forces.col(0).transpose() << "\tPot energy: " << e_pot << "\tKin energy: " << atoms.e_kin() << "\tTotal energy: " << e_pot + atoms.e_kin() << "\n";
+            std::cout << current_time << "/" << total_time << "\tPot energy: " << e_pot << "\tKin energy: " << atoms.e_kin() << "\tTotal energy: " << e_pot + atoms.e_kin() << "\tTemperature: " << atoms.temperature() << "\n";
             write_counter = 0;
         }
 

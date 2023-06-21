@@ -1,6 +1,5 @@
 #include "atoms.h"
 #include "types.h"
-#include "lj_direction_summation.h"
 #include "neighbors.h"
 #include "lj.h"
 #include "verlet.h"
@@ -59,7 +58,7 @@ int main() {
 
         // Update forces
         neighbors_list.update(atoms);
-        e_pot = lj_direct_summation_vectorized_comparism(atoms, epsilon, sigma);
+        e_pot = lj_neighbors(atoms, neighbors_list, lj_cutoff, cutoff_energy, epsilon, sigma);
 
         // Verlet step 2
         acceleration = atoms.forces / mass;

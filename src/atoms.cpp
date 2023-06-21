@@ -50,5 +50,5 @@ double Atoms::temperature(double mass) const {
     // <=> T = 2 * E_{kin} / (3 * k_B)
     // const double k_B = 8.617333262 * 0.00001;
     const double k_B = 1;
-    return 2./3 * e_kin(mass) / k_B;
+    return 2./3 * e_kin(mass) / (k_B * nb_atoms());
 }
