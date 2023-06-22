@@ -18,10 +18,10 @@ int main() {
     write_lattice_cube(grid_filename, grid_n, 1);
 
     std::cout << "Starting...\n";
-    auto [names, positions, velocities]
-        {read_xyz_with_velocities(grid_filename)};
+    std::string filename = "milestones/07/cluster_923.xyz";
+    auto [names, positions]{read_xyz(filename)};
 
-    Atoms atoms = Atoms(Positions_t(positions), Velocities_t(velocities));
+    Atoms atoms = Atoms(Positions_t(positions));
     atoms.velocities = atoms.velocities.setRandom() / 10;
     std::cout << "num atoms: " << atoms.nb_atoms() << "\tekin: " << atoms.e_kin() << "\ttmp: " << atoms.temperature() << "\n";
 

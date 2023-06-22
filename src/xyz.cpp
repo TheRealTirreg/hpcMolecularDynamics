@@ -31,6 +31,8 @@
 std::tuple<Names_t, Positions_t> read_xyz(const std::string &filename) {
     std::ifstream file(filename);
 
+    std::cout << "Reading " << filename << "...\n";
+
     if (file.is_open()) {
         std::string line;
 
@@ -55,7 +57,7 @@ std::tuple<Names_t, Positions_t> read_xyz(const std::string &filename) {
 
         // Close file, we're done
         file.close();
-
+        std::cout << "Done reading " << filename << ".\n";
         return {names, positions};
     } else {
         throw std::runtime_error("Could not open file");
