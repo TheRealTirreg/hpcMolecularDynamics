@@ -9,7 +9,7 @@ void write_energy(std::ofstream &file, double epot, double ekin) {
     file << epot << "\t" << ekin << "\t" << epot + ekin << "\n";
 }
 
-void write_lattice(const std::string &filename, int n, double lattice_const_epsilon) {
+void write_lattice_cube(const std::string &filename, int n, double lattice_const_epsilon) {
     std::ofstream file(filename);
     int cube_root_n = std::floor(cbrt(n));
     int num_atoms = std::pow(cube_root_n, 3);
