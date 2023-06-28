@@ -22,7 +22,7 @@ class Atoms {
 
     [[nodiscard]] size_t nb_atoms() const;
     [[nodiscard]] double e_kin(double mass = 1) const;
-    [[nodiscard]] double temperature(double mass = 1) const;
+    [[nodiscard]] double temperature(double mass = 1, bool lj_units = true) const;
 };
 
 #endif // MY_MD_CODE_ATOMS_H
