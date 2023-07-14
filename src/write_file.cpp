@@ -5,8 +5,8 @@
 #include "write_file.h"
 #include <cmath>
 
-void write_energy(std::ofstream &file, double epot, double ekin) {
-    file << epot << "\t" << ekin << "\t" << epot + ekin << "\n";
+void write_energy(std::ofstream &file, double epot, double ekin, double temperature) {
+    file << epot << "\t" << ekin << "\t" << epot + ekin << "\t" << temperature << "\n";
 }
 
 void write_lattice_cube(const std::string &filename, int n, double lattice_const_epsilon) {

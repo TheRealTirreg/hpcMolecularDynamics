@@ -1,0 +1,81 @@
+=== With thermostat, with neighbors ===
+n=27
+real    0m0.728s
+user    0m0.724s
+sys     0m0.003s
+
+n=64
+real    0m3.087s
+user    0m3.058s
+sys     0m0.000s
+
+n=125
+real    0m9.272s
+user    0m9.265s
+sys     0m0.004s
+
+n=216
+real    0m22.904s
+user    0m22.794s
+sys     0m0.020s
+
+n=343
+real    0m45.865s
+user    0m45.759s
+sys     0m0.077s
+
+n=512
+real    1m16.799s
+user    1m16.627s
+sys     0m0.093s
+
+n=729
+real    1m58.952s
+user    1m58.783s
+sys     0m0.103s
+
+n=1000
+real    2m57.034s
+user    2m56.855s
+sys     0m0.100s
+
+=== With thermostat, without neighbors ===
+n=27
+real    0m0.815s
+user    0m0.814s
+sys     0m0.000s
+
+n=64
+real    0m4.269s
+user    0m4.266s
+sys     0m0.000s
+
+n=125
+real    0m15.879s
+user    0m15.865s
+sys     0m0.007s
+
+n=216
+real    0m47.269s
+user    0m46.988s
+sys     0m0.089s
+
+n=343
+real    1m58.659s
+user    1m58.549s
+sys     0m0.026s
+
+n=512
+real    4m21.753s
+user    4m21.675s
+sys     0m0.004s
+
+n=729
+real    8m50.080s
+user    8m49.916s
+sys     0m0.004s
+
+n=1000
+real    16m37.708s
+user    16m37.365s
+sys     0m0.033s

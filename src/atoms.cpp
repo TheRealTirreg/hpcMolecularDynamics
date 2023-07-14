@@ -55,4 +55,5 @@ double Atoms::temperature(double mass, bool lj_units) const {
     }
 
     return 2./3. * e_kin(mass) / (k_B * nb_atoms());
+
 }

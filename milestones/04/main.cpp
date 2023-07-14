@@ -38,7 +38,7 @@ int main() {
         // Write to file
         if (write_counter == write_every_n_steps) {
             write_xyz(traj, atoms);
-            write_energy(energy, e_pot, atoms.e_kin());
+            write_energy(energy, e_pot, atoms.e_kin(), atoms.temperature());
         }
 
         // Verlet step 1

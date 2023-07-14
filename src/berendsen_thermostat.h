@@ -9,7 +9,8 @@
 #include "atoms.h"
 
 void berendsen_thermostat(Atoms &atoms, double temperature,
-                          double timestep, double relaxation_time);
+                          double timestep, double relaxation_time,
+                          double mass = 1, bool lj_units = true);
 
 
 #endif // MY_MD_CODE_BERENDSEN_THERMOSTAT_H

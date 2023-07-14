@@ -2,10 +2,10 @@
 #include "types.h"
 #include "neighbors.h"
 #include "ducastelle.h"
-#include "berendsen_thermostat.h"
 #include "verlet.h"
 #include "xyz.h"
 #include "write_file.h"
+#include "berendsen_thermostat.h"
 #include <iostream>
 
 
@@ -21,7 +21,7 @@ int main() {
     auto [names, positions]{read_xyz(filename)};
 
     Atoms atoms = Atoms(Names_t(names), Positions_t(positions));
-    atoms.velocities = atoms.velocities.setRandom() / 10;
+    atoms.velocities = atoms.velocities.setRandom() / 1000;
     std::cout << "num atoms: " << atoms.nb_atoms() << "\n";
 
     double mass_gold = 196.97;
@@ -40,10 +40,10 @@ int main() {
 
     // Thermostat
     double relaxation_time = 2000 * timestep;  // 1ps for timestep = 0.5fs
-    double goal_temperature = 150;  // unit: K
+    double goal_temperature = 3000;  // unit: K
 
-    int write_every_n_steps = 1000;
-    int write_counter = 0;
+    int write_every_n_steps = 100;
+    int write_counter = 100;
 
     std::ofstream traj("milestones/07/ovito/traj_real_units.xyz");
     std::ofstream energy("milestones/07/ovito/energy.csv");
@@ -55,7 +55,7 @@ int main() {
         // Write to file
         if (write_counter == write_every_n_steps) {
             write_xyz(traj, atoms);
-            write_energy(energy, e_pot, atoms.e_kin(mass));
+            write_energy(energy, e_pot, atoms.e_kin(mass), atoms.temperature(mass, false));
 
             // Compute total energy in the system
             std::cout << current_time << "/" << total_time << "\tPot energy: " << e_pot << "\tKin energy: " << atoms.e_kin(mass) << "\tTotal energy: " << e_pot + atoms.e_kin(mass) << "\tTemperature: " << atoms.temperature(mass, false) << "\n";
@@ -76,7 +76,7 @@ int main() {
         verlet_step2(atoms.velocities, acceleration, timestep);
 
         // Berendsen Thermostat (fit velocities)
-        berendsen_thermostat(atoms, goal_temperature, timestep, relaxation_time);
+        berendsen_thermostat(atoms, goal_temperature, timestep, relaxation_time, mass, false);
 
         // increment time
         current_time += timestep;
