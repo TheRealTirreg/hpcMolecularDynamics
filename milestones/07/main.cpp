@@ -21,7 +21,6 @@ int main() {
     auto [names, positions]{read_xyz(filename)};
 
     Atoms atoms = Atoms(Names_t(names), Positions_t(positions));
-    atoms.velocities = atoms.velocities.setRandom() / 1000;
     std::cout << "num atoms: " << atoms.nb_atoms() << "\n";
 
     double mass_gold = 196.97;
@@ -39,8 +38,14 @@ int main() {
     neighbors_list.update(atoms);
 
     // Thermostat
-    double relaxation_time = 2000 * timestep;  // 1ps for timestep = 0.5fs
-    double goal_temperature = 3000;  // unit: K
+    double relaxation_time = 500 * timestep;  // 1ps for timestep = 0.5fs
+    double goal_temperature = 800;  // unit: K
+    bool use_thermostat = true;
+    double thermostat_duration = timestep * 500;  // unit: fs
+
+    // Temperature fitter
+    double energy_increment = 7;  // unit: eV
+    double relaxation_time_currently = 0;
 
     int write_every_n_steps = 100;
     int write_counter = 100;
@@ -76,7 +81,21 @@ int main() {
         verlet_step2(atoms.velocities, acceleration, timestep);
 
         // Berendsen Thermostat (fit velocities)
-        berendsen_thermostat(atoms, goal_temperature, timestep, relaxation_time, mass, false);
+        if (use_thermostat) {
+            berendsen_thermostat(atoms, goal_temperature, timestep, relaxation_time, mass, false);
+            if (current_time >= thermostat_duration) {
+                use_thermostat = false;
+                std::cout << "Stop using Thermostat\n";
+            }
+        // Alter temperature by rescaling velocities
+        } else {
+            relaxation_time_currently += timestep;
+            if (relaxation_time_currently > relaxation_time) {
+                std::cout << "incrementing velocities by " << std::sqrt(1 + energy_increment / atoms.e_kin(mass)) << "\n";
+                atoms.velocities *= std::sqrt(1 + energy_increment / atoms.e_kin(mass));
+                relaxation_time_currently = 0;
+            }
+        }
 
         // increment time
         current_time += timestep;

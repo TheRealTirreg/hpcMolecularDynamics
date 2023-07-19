@@ -1,0 +1,46 @@
+% This file was created with tikzplotlib v0.10.1.
+\begin{tikzpicture}
+
+\definecolor{darkgray176}{RGB}{176,176,176}
+\definecolor{orchid227119194}{RGB}{227,119,194}
+\definecolor{steelblue31119180}{RGB}{31,119,180}
+
+\begin{axis}[
+tick align=outside,
+tick pos=left,
+title={Execution time MS05},
+x grid style={darkgray176},
+xlabel={Number of Atoms},
+xmin=0, xmax=1000,
+xtick style={color=black},
+y grid style={darkgray176},
+ylabel={Execution time in \(\displaystyle s\)},
+ymajorgrids,
+ymin=0, ymax=1000,
+ytick style={color=black}
+]
+\addplot [semithick, orchid227119194]
+table {%
+27 0.728
+64 3.087
+125 9.272
+216 22.904
+343 45.865
+512 76.799
+729 118.925
+1000 177.034
+};
+\addplot [semithick, steelblue31119180]
+table {%
+27 0.815
+64 4.269
+125 15.879
+216 47.269
+343 118.659
+512 261.753
+729 530.08
+1000 997.708
+};
+\end{axis}
+
+\end{tikzpicture}
