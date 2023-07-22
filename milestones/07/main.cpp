@@ -17,7 +17,8 @@
 
 int main() {
     std::cout << "Starting...\n";
-    std::string filename = "milestones/07/cluster_923.xyz";
+    std::string cluster_num = "5083";
+    std::string filename = "external/cluster_" + cluster_num + ".xyz";
     auto [names, positions]{read_xyz(filename)};
 
     Atoms atoms = Atoms(Names_t(names), Positions_t(positions));
@@ -33,28 +34,28 @@ int main() {
     double e_pot = 0;
 
     // Neighbors
-    double neighbors_cutoff = 12;
+    double neighbors_cutoff = 9;
     NeighborList neighbors_list{neighbors_cutoff};
     neighbors_list.update(atoms);
 
     // Thermostat
     double relaxation_time = 500 * timestep;  // 1ps for timestep = 0.5fs
-    double goal_temperature = 800;  // unit: K
+    double goal_temperature = 300;  // unit: K
     bool use_thermostat = true;
-    double thermostat_duration = timestep * 500;  // unit: fs
+    double thermostat_duration = timestep * 1000;  // unit: fs
 
     // Temperature fitter
-    double energy_increment = 7;  // unit: eV
+    double energy_increment = 42;  // unit: eV
     double relaxation_time_currently = 0;
 
     int write_every_n_steps = 100;
     int write_counter = 100;
 
-    std::ofstream traj("milestones/07/ovito/traj_real_units.xyz");
-    std::ofstream energy("milestones/07/ovito/energy.csv");
+    std::ofstream traj("milestones/07/ovito/traj_" + cluster_num + ".xyz");
+    std::ofstream energy("milestones/07/ovito/energy_" + cluster_num + ".csv");
 
     // Initialize forces
-    e_pot = ducastelle(atoms, neighbors_list);
+    e_pot = ducastelle(atoms, neighbors_list, neighbors_cutoff - 1);
 
     while (current_time < total_time) {
         // Write to file
@@ -74,7 +75,7 @@ int main() {
 
         // Update forces
         neighbors_list.update(atoms);
-        e_pot = ducastelle(atoms, neighbors_list);
+        e_pot = ducastelle(atoms, neighbors_list, neighbors_cutoff - 1);
 
         // Verlet step 2
         acceleration = atoms.forces / mass;
