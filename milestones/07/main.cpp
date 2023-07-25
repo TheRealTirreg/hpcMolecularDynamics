@@ -17,7 +17,7 @@
 
 int main() {
     std::cout << "Starting...\n";
-    std::string cluster_num = "5083";
+    std::string cluster_num = "309";
     std::string filename = "external/cluster_" + cluster_num + ".xyz";
     auto [names, positions]{read_xyz(filename)};
 
@@ -45,7 +45,8 @@ int main() {
     double thermostat_duration = timestep * 1000;  // unit: fs
 
     // Temperature fitter
-    double energy_increment = 42;  // unit: eV
+    double energy_increment = 1;  // unit: eV
+    double wait_after_energy_injection = 100 * timestep;
     double relaxation_time_currently = 0;
 
     int write_every_n_steps = 100;
@@ -59,7 +60,7 @@ int main() {
 
     while (current_time < total_time) {
         // Write to file
-        if (write_counter == write_every_n_steps) {
+        if (write_counter >= write_every_n_steps && relaxation_time_currently >= wait_after_energy_injection) {
             write_xyz(traj, atoms);
             write_energy(energy, e_pot, atoms.e_kin(mass), atoms.temperature(mass, false));
 
