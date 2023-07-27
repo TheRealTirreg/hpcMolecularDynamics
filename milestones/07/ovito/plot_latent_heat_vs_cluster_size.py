@@ -39,7 +39,7 @@ plt.gca().spines["bottom"].set_alpha(0.5)
 plt.gca().spines["right"].set_alpha(0.0)
 plt.gca().spines["left"].set_alpha(0.5)
 
-path = r"E_vs_T_" + num
+path = r"LH_vs_N"
 tikzplotlib.save(path + ".tex")
 plt.savefig(path + ".png")
 

@@ -8,10 +8,13 @@ labels = [r"$E_\mathrm{total}$", r"Temperature}"]
 headers = ["Etotal", "Temperature"]
 
 # Import Data
-numbers = ["55", "147", "309"]
-#numbers = ["55", "147", "309", "561", "923", "1415", "2057", "2869", "3871",
-#           "5083", "6525", "8217", "10179", "12431", "14993", "17885",
-#           "21127", "24739", "28741"]
+numbers = ["923"]
+# numbers = ["55", "147", "309", "561", "923", "1415", "2057", "2869"]
+# numbers = ["3871", "5083", "6525", "8217", "10179", "12431", "14993", "17885", "21127", "24739", "28741"]
+# numbers = ["55", "147", "309", "561", "923", "1415", "2057", "2869", "3871",
+#            "5083", "6525", "8217", "10179", "12431", "14993", "17885",
+#            "21127", "24739", "28741"]
+
 dfs = [pd.read_csv('energy_' + num + '.csv', header=None, sep="\t", usecols=[2, 3]) for num in numbers]
 for df in dfs:
     # cut away the first
@@ -30,7 +33,7 @@ for i, df in enumerate(dfs):
 
 # Decoration
 plt.xlim(min(dfs[-1][headers[0]]) - 100, max(dfs[0][headers[0]]) + 100)
-plt.ylim(0, 6500)
+plt.ylim(0, 4000)
 plt.ylabel(r'Temperature in $K$')
 plt.xlabel(r'Energy in $eV$')
 plt.yticks(fontsize=12, alpha=.7)

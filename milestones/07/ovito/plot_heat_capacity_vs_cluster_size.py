@@ -5,30 +5,52 @@ import tikzplotlib
 
 # Prepare data
 labels = [r"$E_\mathrm{total}$", r"Temperature}"]
-headers = ["Epot", "Ekin", "Etotal", "Temperature"]
+headers = ["Etotal", "Temperature"]
 
 # Import Data
-num = "147"
-df = pd.read_csv('energy_' + num + '.csv', header=None, sep="\t")
-df.columns = headers
+numbers = ["55"]
+# numbers = ["55", "147", "309", "561", "923", "1415", "2057", "2869"]
+# numbers = ["3871", "5083", "6525", "8217", "10179", "12431", "14993", "17885", "21127", "24739", "28741"]
+# numbers = ["55", "147", "309", "561", "923", "1415", "2057", "2869", "3871",
+#            "5083", "6525", "8217", "10179", "12431", "14993", "17885",
+#            "21127", "24739", "28741"]
+
+dfs = [pd.read_csv('energy_' + num + '.csv', header=None, sep="\t", usecols=[2, 3]) for num in numbers]
+for df in dfs:
+    # cut away the first
+    df.columns = headers
+
+# Calculate Heat Capacities
+for df in dfs:
+    hc = [0]
+    for i in range(1, len(df)):
+        hc.append((df[headers[0]].iloc[i] - df[headers[0]].iloc[i-1]) /
+                  (df[headers[1]].iloc[i] - df[headers[1]].iloc[i-1]))
+        if round(hc[-1], 5) != 0:
+            print(hc[-1], df["Temperature"].iloc[i])
+    df.insert(2, "Heat Capacities", hc)
+# Remove rows where HC is 0
+dfs = [df[df["Heat Capacities"].round(5) != 0] for df in dfs]
 
 # Draw Plot
-mycolors = ['tab:pink', 'tab:blue', 'tab:green']
-# ['tab:orange', 'tab:brown', 'tab:grey', 'tab:red',
-# 'tab:olive', 'deeppink', 'steelblue', 'firebrick', 'mediumseagreen']
+mycolors = ['tab:pink', 'tab:blue', 'tab:green', 'tab:orange',
+            'tab:brown', 'tab:grey', 'tab:red', 'tab:olive',
+            'deeppink', 'steelblue', 'firebrick', 'mediumseagreen']
 
 plt.figure(figsize=(8, 5), dpi=80)
 
-plt.plot(df[headers[2]], df[headers[3]], color=mycolors[1], label=labels[0])
+for i, df in enumerate(dfs):
+    plt.plot(df[headers[1]], df["Heat Capacities"], "bo", color=mycolors[i % len(mycolors)], label=numbers[i])
+    # plt.text(df["Heat Capacities"].iloc[-1], max(df["Heat Capacities"]) + 50, numbers[i], horizontalalignment='center', color=mycolors[i % len(mycolors)])
 
 # Decoration
-plt.xlim(-550, -300)
-plt.ylim(0, 4000)
-plt.xlabel(r'Energy in $eV$')
-plt.ylabel(r'Temperature in $K$')
+plt.xlim(min(dfs[-1]["Temperature"]) - 100, max(dfs[0]["Temperature"]) + 100)
+plt.ylim(min(dfs[-1]["Heat Capacities"]) - 0.25, max(dfs[0]["Heat Capacities"]) + 0.25)
+plt.xlabel(r'Temperature in $K$')
+plt.ylabel(r'Heat Capacity in $\frac{eV}{K}$')
 plt.yticks(fontsize=12, alpha=.7)
-plt.title("Total Energy versus Temperature " + num + " Atoms", fontsize=22)
-matplotx.line_labels()
+plt.title("Temperature versus Heat Capacity", fontsize=22)
+# matplotx.line_labels()
 
 # Plot grid behind graphs
 plt.grid(axis='y', alpha=.3)
@@ -39,8 +61,8 @@ plt.gca().spines["bottom"].set_alpha(0.5)
 plt.gca().spines["right"].set_alpha(0.0)
 plt.gca().spines["left"].set_alpha(0.5)
 
-path = r"E_vs_T_" + num
-tikzplotlib.save(path + ".tex")
+path = r"T_vs_C"
+# tikzplotlib.save(path + ".tex")
 plt.savefig(path + ".png")
 
 plt.show()  # clears the plot
