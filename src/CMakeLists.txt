@@ -1,11 +1,11 @@
 # List of headers
 set(MY_MD_HEADERS
-  hello.h verlet.h types.h atoms.h lj_direction_summation.h xyz.h write_file.h neighbors.h lj.h berendsen_thermostat.h ducastelle.h
+  hello.h verlet.h types.h atoms.h lj_direction_summation.h xyz.h write_file.h neighbors.h lj.h berendsen_thermostat.h ducastelle.h domain.h mpi_support.h
 )
 
 # List of implementation files
 set(MY_MD_CPP
-  hello.cpp verlet.cpp atoms.cpp lj_direction_summation.cpp xyz.cpp write_file.cpp neighbors.cpp lj.cpp berendsen_thermostat.cpp ducastelle.cpp
+  hello.cpp verlet.cpp atoms.cpp lj_direction_summation.cpp xyz.cpp write_file.cpp neighbors.cpp lj.cpp berendsen_thermostat.cpp ducastelle.cpp domain.cpp
         )
 
 # Create a static library

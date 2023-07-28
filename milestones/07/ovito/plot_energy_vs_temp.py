@@ -8,14 +8,14 @@ labels = [r"$E_\mathrm{total}$", r"Temperature}"]
 headers = ["Etotal", "Temperature"]
 
 # Import Data
-numbers = ["923"]
+numbers = ["55"]
 # numbers = ["55", "147", "309", "561", "923", "1415", "2057", "2869"]
 # numbers = ["3871", "5083", "6525", "8217", "10179", "12431", "14993", "17885", "21127", "24739", "28741"]
 # numbers = ["55", "147", "309", "561", "923", "1415", "2057", "2869", "3871",
 #            "5083", "6525", "8217", "10179", "12431", "14993", "17885",
 #            "21127", "24739", "28741"]
 
-dfs = [pd.read_csv('energy_' + num + '.csv', header=None, sep="\t", usecols=[2, 3]) for num in numbers]
+dfs = [pd.read_csv('energy_' + num + '.csv', header=None, sep="\t") for num in numbers]
 for df in dfs:
     # cut away the first
     df.columns = headers

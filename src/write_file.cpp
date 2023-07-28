@@ -9,6 +9,10 @@ void write_energy(std::ofstream &file, double epot, double ekin, double temperat
     file << epot << "\t" << ekin << "\t" << epot + ekin << "\t" << temperature << "\n";
 }
 
+void write_E_T(std::ofstream &file, double etotal, double tmp) {
+    file << etotal << "\t" << tmp << "\n";
+}
+
 void write_lattice_cube(const std::string &filename, int n, double lattice_const_epsilon) {
     std::ofstream file(filename);
     int cube_root_n = std::floor(cbrt(n));
