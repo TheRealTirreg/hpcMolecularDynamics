@@ -11,6 +11,8 @@ void write_energy(std::ofstream &file, double epot, double ekin, double temperat
 
 void write_E_T(std::ofstream &file, double etotal, double tmp);
 
+void write_E_T_C(std::ofstream &file, double etotal, double tmp, double heat_capacity);
+
 void write_lattice_cube(const std::string &filename, int n, double lattice_const_epsilon);
 
 #endif // MY_MD_CODE_WRITE_FILE_H

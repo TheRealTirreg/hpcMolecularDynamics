@@ -8,7 +8,7 @@ labels = [r"$E_\mathrm{total}$", r"Temperature}"]
 headers = ["Etotal", "Temperature"]
 
 # Import Data
-numbers = ["55"]
+numbers = ["923"]
 # numbers = ["55", "147", "309", "561", "923", "1415", "2057", "2869"]
 # numbers = ["3871", "5083", "6525", "8217", "10179", "12431", "14993", "17885", "21127", "24739", "28741"]
 # numbers = ["55", "147", "309", "561", "923", "1415", "2057", "2869", "3871",
@@ -29,11 +29,9 @@ plt.figure(figsize=(8, 5), dpi=80)
 
 for i, df in enumerate(dfs):
     plt.plot(df[headers[0]], df[headers[1]], color=mycolors[i % len(mycolors)], label=numbers[i])
-    plt.text(df[headers[0]].iloc[-1], max(df[headers[1]]) + 50, numbers[i], horizontalalignment='center', color=mycolors[i % len(mycolors)])
+    plt.text(df[headers[0]].iloc[-1], max(df[headers[1]]) + 20, numbers[i], horizontalalignment='center', color=mycolors[i % len(mycolors)])
 
 # Decoration
-plt.xlim(min(dfs[-1][headers[0]]) - 100, max(dfs[0][headers[0]]) + 100)
-plt.ylim(0, 4000)
 plt.ylabel(r'Temperature in $K$')
 plt.xlabel(r'Energy in $eV$')
 plt.yticks(fontsize=12, alpha=.7)

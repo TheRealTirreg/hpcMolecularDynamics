@@ -5,32 +5,24 @@ import tikzplotlib
 
 # Prepare data
 labels = [r"$E_\mathrm{total}$", r"Temperature}"]
-headers = ["Etotal", "Temperature"]
+headers = ["Etotal", "Temperature", "Heat Capacity"]
 
 # Import Data
-numbers = ["55"]
-# numbers = ["55", "147", "309", "561", "923", "1415", "2057", "2869"]
-# numbers = ["3871", "5083", "6525", "8217", "10179", "12431", "14993", "17885", "21127", "24739", "28741"]
+# numbers = ["55"]
+numbers = ["55", "147", "309", "561", "923", "1415", "2057"]
+# numbers = ["2869", "3871", "5083", "6525", "8217", "10179", "12431", "14993", "17885", "21127", "24739", "28741"]
 # numbers = ["55", "147", "309", "561", "923", "1415", "2057", "2869", "3871",
 #            "5083", "6525", "8217", "10179", "12431", "14993", "17885",
 #            "21127", "24739", "28741"]
 
-dfs = [pd.read_csv('energy_' + num + '.csv', header=None, sep="\t", usecols=[2, 3]) for num in numbers]
+dfs = [pd.read_csv('energy_' + num + '.csv', header=None, sep="\t") for num in numbers]
 for df in dfs:
     # cut away the first
     df.columns = headers
 
-# Calculate Heat Capacities
+# set first element to 0
 for df in dfs:
-    hc = [0]
-    for i in range(1, len(df)):
-        hc.append((df[headers[0]].iloc[i] - df[headers[0]].iloc[i-1]) /
-                  (df[headers[1]].iloc[i] - df[headers[1]].iloc[i-1]))
-        if round(hc[-1], 5) != 0:
-            print(hc[-1], df["Temperature"].iloc[i])
-    df.insert(2, "Heat Capacities", hc)
-# Remove rows where HC is 0
-dfs = [df[df["Heat Capacities"].round(5) != 0] for df in dfs]
+    df.iat[0, 2] = None
 
 # Draw Plot
 mycolors = ['tab:pink', 'tab:blue', 'tab:green', 'tab:orange',
@@ -40,17 +32,15 @@ mycolors = ['tab:pink', 'tab:blue', 'tab:green', 'tab:orange',
 plt.figure(figsize=(8, 5), dpi=80)
 
 for i, df in enumerate(dfs):
-    plt.plot(df[headers[1]], df["Heat Capacities"], "bo", color=mycolors[i % len(mycolors)], label=numbers[i])
-    # plt.text(df["Heat Capacities"].iloc[-1], max(df["Heat Capacities"]) + 50, numbers[i], horizontalalignment='center', color=mycolors[i % len(mycolors)])
+    plt.plot(df[headers[1]], df[headers[2]], "o", color=mycolors[i % len(mycolors)], label=numbers[i])
+    # plt.text(df[headers[2]].iloc[-1], max(df[headers[2]]) + 50, numbers[i], horizontalalignment='center', color=mycolors[i % len(mycolors)])
 
 # Decoration
-plt.xlim(min(dfs[-1]["Temperature"]) - 100, max(dfs[0]["Temperature"]) + 100)
-plt.ylim(min(dfs[-1]["Heat Capacities"]) - 0.25, max(dfs[0]["Heat Capacities"]) + 0.25)
 plt.xlabel(r'Temperature in $K$')
 plt.ylabel(r'Heat Capacity in $\frac{eV}{K}$')
 plt.yticks(fontsize=12, alpha=.7)
 plt.title("Temperature versus Heat Capacity", fontsize=22)
-# matplotx.line_labels()
+matplotx.line_labels()
 
 # Plot grid behind graphs
 plt.grid(axis='y', alpha=.3)
