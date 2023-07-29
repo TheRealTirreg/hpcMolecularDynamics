@@ -17,7 +17,7 @@
 
 int main() {
     std::cout << "Starting...\n";
-    std::string cluster_num = "55";
+    std::string cluster_num = "28741";
     std::string filename = "external/cluster_" + cluster_num + ".xyz";
     auto [names, positions]{read_xyz(filename)};
 
@@ -45,7 +45,7 @@ int main() {
     double thermostat_duration = timestep * 1000;  // unit: fs
 
     // Temperature fitter
-    double energy_increment = 0.2;  // unit: eV
+    double energy_increment = 190;  // unit: eV
     double wait_after_energy_injection = 200 * timestep;  // 100fs for timestep 0.5fs
     double measurement_time = wait_after_energy_injection + 1800 * timestep;  // 100fs + 900fs for timestep 0.5fs
     double measurement_time_currently = 0;  // unit: fs

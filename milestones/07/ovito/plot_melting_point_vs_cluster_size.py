@@ -5,7 +5,7 @@ import tikzplotlib
 
 # Prepare data
 labels = [r"$E_\mathrm{total}$", r"Temperature}"]
-headers = ["Epot", "Ekin", "Etotal", "Temperature"]
+headers = ["Etotal", "Temperature", "Heat Capacity"]
 
 # Import Data
 num = "147"

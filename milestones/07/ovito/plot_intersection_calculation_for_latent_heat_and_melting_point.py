@@ -17,10 +17,9 @@ numbers = ["55", "147", "309", "561", "923", "1415", "2057"]
 
 dfs = [pd.read_csv('energy_' + num + '.csv', header=None, sep="\t") for num in numbers]
 for df in dfs:
-    # cut away the first
     df.columns = headers
 
-# set first element to 0
+# Set first element to 0
 for df in dfs:
     df.iat[0, 2] = None
 
