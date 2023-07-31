@@ -9,11 +9,11 @@ headers = ["Etotal", "Temperature", "Heat Capacity"]
 
 # Import Data
 # numbers = ["55"]
-numbers = ["55", "147", "309", "561", "923", "1415", "2057"]
+# numbers = ["55", "147", "309", "561", "923", "1415", "2057"]
 # numbers = ["2869", "3871", "5083", "6525", "8217", "10179", "12431", "14993", "17885", "21127", "24739", "28741"]
-# numbers = ["55", "147", "309", "561", "923", "1415", "2057", "2869", "3871",
-#            "5083", "6525", "8217", "10179", "12431", "14993", "17885",
-#            "21127", "24739", "28741"]
+numbers = ["55", "147", "309", "561", "923", "1415", "2057", "2869", "3871",
+           "5083", "6525", "8217", "10179", "12431", "14993", "17885",
+           "21127", "24739", "28741"]
 
 dfs = [pd.read_csv('energy_' + num + '.csv', header=None, sep="\t") for num in numbers]
 for df in dfs:
@@ -28,10 +28,10 @@ mycolors = ['tab:pink', 'tab:blue', 'tab:green', 'tab:orange',
             'tab:brown', 'tab:grey', 'tab:red', 'tab:olive',
             'deeppink', 'steelblue', 'firebrick', 'mediumseagreen']
 
-plt.figure(figsize=(8, 5), dpi=80)
+plt.figure(figsize=(12, 7), dpi=100)
 
 for i, df in enumerate(dfs):
-    plt.plot(df[headers[1]], df[headers[2]], "o", color=mycolors[i % len(mycolors)], label=numbers[i])
+    plt.plot(df[headers[1]], df[headers[2]], "o", markersize=2, color=mycolors[i % len(mycolors)], label=numbers[i])
     # plt.text(df[headers[2]].iloc[-1], max(df[headers[2]]) + 50, numbers[i], horizontalalignment='center', color=mycolors[i % len(mycolors)])
 
 # Decoration

@@ -10,7 +10,7 @@ plt.figure(figsize=(8, 5), dpi=80)
 
 # Import and draw data
 nums_and_points = []
-with open('intersection points', "r") as f:
+with open('intersection points all', "r") as f:
     for i, line in enumerate(f):
         num, *pts = line.split("\t")
         for p in pts:
