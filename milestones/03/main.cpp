@@ -7,7 +7,9 @@
 #endif
 
 
-int main() {
+int main(int argc, char *argv[]) {
+    int rank = 0, size = 1;
+
     size_t num_atoms = 10;
 
     Positions_t positions(3, num_atoms);

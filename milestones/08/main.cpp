@@ -8,16 +8,12 @@
 #include "berendsen_thermostat.h"
 #include <iostream>
 
+#ifdef USE_MPI
+#include <mpi.h>
+#endif
 
-/* Heat up system by rescaling velocities
- * Plot energies & temperature with energy jumps \delta Q
- * In the temperature plot, look at melting points
- * */
-
-
-int main() {
+void simulate(std::string cluster_num, int dimx, int dimy, int dimz) {
     std::cout << "Starting...\n";
-    std::string cluster_num = "55";
     std::string filename = "external/cluster_" + cluster_num + ".xyz";
     auto [names, positions]{read_xyz(filename)};
 
@@ -53,8 +49,8 @@ int main() {
     double average_temperature = 0;  // unit: K
     double steps_for_average = 0;
 
-    std::ofstream traj("milestones/07/ovito/traj_" + cluster_num + ".xyz");
-    std::ofstream energy("milestones/07/ovito/energy_" + cluster_num + ".csv");
+    std::ofstream traj("milestones/08/ovito/traj_" + cluster_num + ".xyz");
+    std::ofstream energy("milestones/08/ovito/energy_" + cluster_num + ".csv");
 
     // Initialize forces
     e_pot = ducastelle(atoms, neighbors_list, neighbors_cutoff - 1);
@@ -80,7 +76,7 @@ int main() {
                 use_thermostat = false;
                 std::cout << "Stop using Thermostat\n";
             }
-        // Alter temperature by rescaling velocities
+            // Alter temperature by rescaling velocities
         } else {
             relaxation_time_currently += timestep;
             if (wait_after_energy_injection < relaxation_time_currently && relaxation_time_currently < relaxation_time) {
@@ -111,5 +107,20 @@ int main() {
 
     traj.close();
     std::cout << "Done simulating\n";
+}
+
+
+int main(int argc, char *argv[]) {
+    int rank = 0, size = 1;
+#ifdef USE_MPI
+    std::cout << "Using MPI\n";
+    MPI_Init(&argc, &argv);
+
+    // Retrieve process infos
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+#endif
+
+    simulate("55", 1, 1, 1);
     return 0;
 }

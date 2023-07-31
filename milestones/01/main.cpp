@@ -7,11 +7,12 @@
 #endif
 
 
-int main() {
+int main(int argc, char *argv[]) {
     int rank = 0, size = 1;
 
     // Below is some MPI code, try compiling with `cmake -DUSE_MPI=ON ..`
 #ifdef USE_MPI
+    std::cout << "Using MPI\n";
     MPI_Init(&argc, &argv);
 
     // Retrieve process infos

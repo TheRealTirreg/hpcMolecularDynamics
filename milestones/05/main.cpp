@@ -13,7 +13,9 @@
 #include <mpi.h>
 #endif
 
-int main() {
+int main(int argc, char *argv[]) {
+    int rank = 0, size = 1;
+
     // Create grid of atoms
     std::cout << "Creating grid...\n";
     int grid_n = 1000;
