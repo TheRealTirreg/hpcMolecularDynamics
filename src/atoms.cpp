@@ -44,6 +44,9 @@ void Atoms::set_masses(double mass) {
     masses = mass;
 }
 
+void Atoms::resize(int num) {
+
+}
 
 size_t Atoms::nb_atoms() const {
     return positions.cols();
