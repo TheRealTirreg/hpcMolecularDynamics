@@ -123,5 +123,6 @@ int main(int argc, char *argv[]) {
 #endif
 
     simulate("55", 1, 1, 1);
+    MPI_Finalize();
     return 0;
 }

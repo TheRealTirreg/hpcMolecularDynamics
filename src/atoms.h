@@ -22,6 +22,7 @@ class Atoms {
     Atoms(const Names_t &names, const Positions_t &p);
 
     void set_masses(double mass);
+    void resize(int num);
 
     [[nodiscard]] size_t nb_atoms() const;
     [[nodiscard]] double e_kin(double mass = 1) const;
