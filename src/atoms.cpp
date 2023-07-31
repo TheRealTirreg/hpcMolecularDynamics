@@ -15,6 +15,7 @@ Atoms::Atoms(const size_t nb_atoms, bool randomize) :
         positions.setZero();
         velocities.setZero();
         forces.setZero();
+        masses.setOnes();
     }
 }
 
@@ -22,19 +23,27 @@ Atoms::Atoms(const Positions_t &p) :
       names{}, positions{p}, velocities{3, p.cols()}, forces{3, p.cols()} {
     velocities.setZero();
     forces.setZero();
+    masses.setOnes();
 }
 
 Atoms::Atoms(const Names_t &names, const Positions_t &p) :
       names{names}, positions{p}, velocities{3, p.cols()}, forces{3, p.cols()} {
     velocities.setZero();
     forces.setZero();
+    masses.setOnes();
 }
 
 Atoms::Atoms(const Positions_t &p, const Velocities_t &v) :
       names{}, positions{p}, velocities{v}, forces{3, p.cols()} {
     assert(p.cols() == v.cols());
     forces.setZero();
+    masses.setOnes();
 }
+
+void Atoms::set_masses(double mass) {
+    masses = mass;
+}
+
 
 size_t Atoms::nb_atoms() const {
     return positions.cols();
@@ -55,5 +64,4 @@ double Atoms::temperature(double mass, bool lj_units) const {
     }
 
     return 2./3. * e_kin(mass) / (k_B * nb_atoms());
-
 }

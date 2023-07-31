@@ -14,11 +14,14 @@ class Atoms {
     Positions_t positions;
     Velocities_t velocities;
     Forces_t forces;
+    Masses_t masses;
 
     explicit Atoms(size_t nb_atoms, bool randomize = false);
     explicit Atoms(const Positions_t &p);
     Atoms(const Positions_t &p, const Velocities_t &v);
     Atoms(const Names_t &names, const Positions_t &p);
+
+    void set_masses(double mass);
 
     [[nodiscard]] size_t nb_atoms() const;
     [[nodiscard]] double e_kin(double mass = 1) const;

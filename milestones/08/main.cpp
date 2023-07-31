@@ -23,6 +23,7 @@ void simulate(std::string cluster_num, int dimx, int dimy, int dimz) {
     double mass_gold = 196.97;
     double mass_unit_factor = 103.6;
     double mass = mass_gold * mass_unit_factor;  // unit: g/mol
+    atoms.set_masses(mass);
     double timestep = 0.5;  // unit: fs
     double total_time = 500000;  // unit: fs
     double current_time = 0;  // unit: fs
