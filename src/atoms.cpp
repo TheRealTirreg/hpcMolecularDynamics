@@ -6,7 +6,7 @@
 #include "types.h"
 
 Atoms::Atoms(const size_t nb_atoms, bool randomize) :
-      names{}, positions{3, nb_atoms}, velocities{3, nb_atoms}, forces{3, nb_atoms} {
+      names{}, positions{3, nb_atoms}, velocities{3, nb_atoms}, forces{3, nb_atoms}, masses{nb_atoms} {
     if (randomize) {
         positions.setRandom();
         velocities.setRandom();
@@ -15,37 +15,41 @@ Atoms::Atoms(const size_t nb_atoms, bool randomize) :
         positions.setZero();
         velocities.setZero();
         forces.setZero();
-        masses.setOnes();
     }
+    masses.setOnes();
 }
 
 Atoms::Atoms(const Positions_t &p) :
-      names{}, positions{p}, velocities{3, p.cols()}, forces{3, p.cols()} {
+      names{}, positions{p}, velocities{3, p.cols()}, forces{3, p.cols()}, masses{p.cols()} {
     velocities.setZero();
     forces.setZero();
     masses.setOnes();
 }
 
 Atoms::Atoms(const Names_t &names, const Positions_t &p) :
-      names{names}, positions{p}, velocities{3, p.cols()}, forces{3, p.cols()} {
+      names{names}, positions{p}, velocities{3, p.cols()}, forces{3, p.cols()}, masses{p.cols()} {
     velocities.setZero();
     forces.setZero();
     masses.setOnes();
 }
 
 Atoms::Atoms(const Positions_t &p, const Velocities_t &v) :
-      names{}, positions{p}, velocities{v}, forces{3, p.cols()} {
+      names{}, positions{p}, velocities{v}, forces{3, p.cols()}, masses{p.cols()} {
     assert(p.cols() == v.cols());
     forces.setZero();
     masses.setOnes();
 }
 
 void Atoms::set_masses(double mass) {
-    masses = mass;
+    masses *= mass;
 }
 
-void Atoms::resize(int num) {
-
+void Atoms::resize(const int n) {
+    positions.conservativeResize(3, n);
+    velocities.conservativeResize(3, n);
+    forces.conservativeResize(3, n);
+    masses.conservativeResize(n);
+    names.resize(n);
 }
 
 size_t Atoms::nb_atoms() const {

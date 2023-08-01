@@ -8,12 +8,18 @@
 #include "berendsen_thermostat.h"
 #include <iostream>
 
-#ifdef USE_MPI
 #include <mpi.h>
-#endif
+#include "mpi_support.h"
+#include "domain.h"
 
-void simulate(std::string cluster_num, int dimx, int dimy, int dimz) {
-    std::cout << "Starting...\n";
+void simulate(std::string cluster_num) {
+    // Retrieve process infos and setup domain
+    int rank; int size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    std::cout << "Using MPI with rank " << rank << " and size " << size << "\n";
+
     std::string filename = "external/cluster_" + cluster_num + ".xyz";
     auto [names, positions]{read_xyz(filename)};
 
@@ -29,6 +35,14 @@ void simulate(std::string cluster_num, int dimx, int dimy, int dimz) {
     double current_time = 0;  // unit: fs
 
     double e_pot = 0;
+
+    // Set up domains
+    double cluster_diameter = 2 * atoms.positions.row(0).maxCoeff();
+    double cluster_rim = 10;
+    Domain domain{MPI_COMM_WORLD, {cluster_diameter + cluster_rim, cluster_diameter + cluster_rim, cluster_diameter + cluster_rim}, {2, 2, 1}, {0, 0, 0}};
+
+    // Shift positions of atoms, as the center of the read cluster is 0,0,0
+    atoms.positions += (cluster_diameter + cluster_rim) / 2;
 
     // Neighbors
     double neighbors_cutoff = 10;
@@ -50,17 +64,40 @@ void simulate(std::string cluster_num, int dimx, int dimy, int dimz) {
     double average_temperature = 0;  // unit: K
     double steps_for_average = 0;
 
-    std::ofstream traj("milestones/08/ovito/traj_" + cluster_num + ".xyz");
-    std::ofstream energy("milestones/08/ovito/energy_" + cluster_num + ".csv");
+    std::ofstream traj;
+    std::ofstream energy;
+    if (rank == 0) {
+        traj = std::ofstream("milestones/08/ovito/traj_" + cluster_num + ".xyz");
+        energy = std::ofstream("milestones/08/ovito/energy_" + cluster_num + ".csv");
+        write_xyz(traj, atoms);
+    }
 
     // Initialize forces
     e_pot = ducastelle(atoms, neighbors_list, neighbors_cutoff - 1);
 
-    while (current_time < total_time) {
+    if (rank == 0) std::cout << "after ducastelle\n";
+    std::cout << atoms.masses.rows() << "\n";
+    std::cout << atoms.positions.cols() << "\n";
+    std::cout << atoms.velocities.cols() << "\n";
+    std::cout << atoms.forces.cols() << "\n";
+    // while(true){}
 
+    // Make domain ready for main loop
+    domain.enable(atoms);
+
+    domain.update_ghosts(atoms, 2 * (neighbors_cutoff - 1));
+    neighbors_list.update(atoms);
+
+    if (rank == 0) std::cout << "before while\n";
+
+    while (current_time < total_time) {
         // Verlet step 1
         Acceleration_t acceleration = atoms.forces / mass;
         verlet_step1(atoms.positions, atoms.velocities, acceleration, timestep);
+
+        // Exchange information between domains
+        domain.exchange_atoms(atoms);
+        domain.update_ghosts(atoms, 2 * (neighbors_cutoff - 1));
 
         // Update forces
         neighbors_list.update(atoms);
@@ -71,58 +108,39 @@ void simulate(std::string cluster_num, int dimx, int dimy, int dimz) {
         verlet_step2(atoms.velocities, acceleration, timestep);
 
         // Berendsen Thermostat (fit velocities)
-        if (use_thermostat) {
-            berendsen_thermostat(atoms, goal_temperature, timestep, thermostat_relaxation_time, mass, false);
-            if (current_time >= thermostat_duration) {
-                use_thermostat = false;
-                std::cout << "Stop using Thermostat\n";
-            }
-            // Alter temperature by rescaling velocities
-        } else {
-            relaxation_time_currently += timestep;
-            if (wait_after_energy_injection < relaxation_time_currently && relaxation_time_currently < relaxation_time) {
-                average_energy += e_pot + atoms.e_kin(mass);
-                average_temperature += atoms.temperature(mass, false);
-                steps_for_average++;
-            }
-            else if (relaxation_time_currently >= relaxation_time) {
-                // Increment energy
-                atoms.velocities *= std::sqrt(1 + energy_increment / atoms.e_kin(mass));
 
+        if (int(current_time) % 1000 == 0) {
+            domain.disable(atoms);
+            if (rank == 0) {
                 // Write to files
                 write_xyz(traj, atoms);
                 write_E_T(energy, average_energy / steps_for_average, average_temperature / steps_for_average);
                 // std::cout << current_time << "/" << total_time << "\tPot energy: " << e_pot << "\tKin energy: " << atoms.e_kin(mass) << "\tTotal energy: " << e_pot + atoms.e_kin(mass) << "\tTemperature: " << atoms.temperature(mass, false) << "\n";
                 std::cout << current_time << "/" << total_time << "\tEnergy: " << average_energy / steps_for_average << "\tTemperature: " << average_temperature / steps_for_average << "\n";
-
-                average_energy = 0;
-                average_temperature = 0;
-                steps_for_average = 0;
-                relaxation_time_currently = 0;
             }
+            domain.enable(atoms);
+            domain.update_ghosts(atoms, 2 * (neighbors_cutoff - 1));
+            neighbors_list.update(atoms);
+            // ducastelle?
         }
 
         // Increment time
         current_time += timestep;
     }
 
-    traj.close();
+    if (rank == 0) {
+        traj.close();
+    }
     std::cout << "Done simulating\n";
 }
 
 
 int main(int argc, char *argv[]) {
-    int rank = 0, size = 1;
-#ifdef USE_MPI
-    std::cout << "Using MPI\n";
     MPI_Init(&argc, &argv);
 
-    // Retrieve process infos
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-#endif
+    simulate("55");
 
-    simulate("55", 1, 1, 1);
     MPI_Finalize();
+
     return 0;
 }
