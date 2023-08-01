@@ -39,7 +39,10 @@ void simulate(std::string cluster_num) {
     // Set up domains
     double cluster_diameter = 2 * atoms.positions.row(0).maxCoeff();
     double cluster_rim = 10;
-    Domain domain{MPI_COMM_WORLD, {cluster_diameter + cluster_rim, cluster_diameter + cluster_rim, cluster_diameter + cluster_rim}, {2, 2, 1}, {0, 0, 0}};
+    Domain domain{MPI_COMM_WORLD,
+                  {cluster_diameter + cluster_rim, cluster_diameter + cluster_rim, cluster_diameter + cluster_rim},
+                  {2, 2, 1},
+                  {0, 0, 0}};
 
     // Shift positions of atoms, as the center of the read cluster is 0,0,0
     atoms.positions += (cluster_diameter + cluster_rim) / 2;
