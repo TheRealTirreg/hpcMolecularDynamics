@@ -18,7 +18,7 @@
 int main() {
     std::cout << "Starting...\n";
     std::string cluster_num = "28741";
-    std::string filename = "external/cluster_" + cluster_num + ".xyz";
+    std::string filename = "clusters/cluster_" + cluster_num + ".xyz";
     auto [names, positions]{read_xyz(filename)};
 
     Atoms atoms = Atoms(Names_t(names), Positions_t(positions));

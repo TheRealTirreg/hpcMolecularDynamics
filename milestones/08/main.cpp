@@ -12,6 +12,7 @@
 #include "mpi_support.h"
 #include "domain.h"
 
+
 void simulate(std::string cluster_num) {
     // Retrieve process infos and setup domain
     int rank; int size;
@@ -20,7 +21,8 @@ void simulate(std::string cluster_num) {
 
     std::cout << "Using MPI with rank " << rank << " and size " << size << "\n";
 
-    std::string filename = "external/cluster_" + cluster_num + ".xyz";
+    std::string root = "../";  // Needed because the location is within the cmake-build folder
+    std::string filename = root + "clusters/cluster_" + cluster_num + ".xyz";
     auto [names, positions]{read_xyz(filename)};
 
     Atoms atoms = Atoms(Names_t(names), Positions_t(positions));
@@ -70,8 +72,8 @@ void simulate(std::string cluster_num) {
     std::ofstream traj;
     std::ofstream energy;
     if (rank == 0) {
-        traj = std::ofstream("milestones/08/ovito/traj_" + cluster_num + ".xyz");
-        energy = std::ofstream("milestones/08/ovito/energy_" + cluster_num + ".csv");
+        traj = std::ofstream(root + "milestones/08/ovito/traj_" + cluster_num + ".xyz");
+        energy = std::ofstream(root + "milestones/08/ovito/energy_" + cluster_num + ".csv");
         write_xyz(traj, atoms);
     }
 
