@@ -9,9 +9,13 @@
 #include "atoms.h"
 #include "domain.h"
 
-void berendsen_thermostat(Atoms &atoms, Domain &domain, double temperature,
+void berendsen_thermostat(Atoms &atoms, double temperature,
                           double timestep, double relaxation_time,
                           bool lj_units = true);
+
+void berendsen_thermostat_mp(Atoms &atoms, Domain &domain,
+                             double temperature, double timestep,
+                             double relaxation_time, bool lj_units = true);
 
 
 #endif // MY_MD_CODE_BERENDSEN_THERMOSTAT_H

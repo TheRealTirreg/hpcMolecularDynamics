@@ -92,6 +92,7 @@ int main() {
             else if (measurement_time_currently >= measurement_time) {
                 // Write to files
                 write_xyz(traj, atoms);
+                // TODO should be last_avg_temperature / steps_for_average or so
                 write_E_T_C(energy, added_energy_sum, average_temperature / steps_for_average, energy_increment / (average_temperature / steps_for_average - last_avg_temperature));
                 // std::cout << current_time << "/" << total_time << "\tPot energy: " << e_pot << "\tKin energy: " << atoms.e_kin(mass) << "\tTotal energy: " << e_pot + atoms.e_kin(mass) << "\tTemperature: " << atoms.temperature(mass, false) << "\n";
                 std::cout << current_time << "/" << total_time << "\tEnergy: " << e_pot + atoms.e_kin() << "\tAdded energy: " << added_energy_sum << "\tTemperature: " << average_temperature / steps_for_average << "\n";

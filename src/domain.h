@@ -134,7 +134,7 @@ protected:
     }
 
     /*
-     * Check whether domain decomposition is disable and raise an error is this is not the case.
+     * Check whether domain decomposition is disabled and raise an error is this is not the case.
      */
     void assert_disabled() const {
         if (is_enabled_) throw std::runtime_error("Expected domain decomposition to be disabled.");

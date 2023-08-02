@@ -149,7 +149,7 @@ void Domain::disable(Atoms &atoms) {
 }
 
 Eigen::Index Domain::_exchange_atoms(Atoms &atoms, int dim) {
-    // Determine atoms that need to be send to the left and the right.
+    // Determine atoms that need to be sent to the left and the right.
     auto domain_coordinates{get_coordinates(atoms.positions, dim)};
     auto left_mask{domain_coordinates < coordinate_(dim)};
     auto right_mask{domain_coordinates > coordinate_(dim)};
