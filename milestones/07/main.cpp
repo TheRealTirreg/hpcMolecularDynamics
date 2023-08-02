@@ -27,6 +27,7 @@ int main() {
     double mass_gold = 196.97;
     double mass_unit_factor = 103.6;
     double mass = mass_gold * mass_unit_factor;  // unit: g/mol
+    atoms.set_masses(mass);
     double timestep = 0.5;  // unit: fs
     double total_time = 80000;  // unit: fs
     double current_time = 0;  // unit: fs
@@ -75,7 +76,7 @@ int main() {
 
         // Berendsen Thermostat (fit velocities)
         if (use_thermostat) {
-            berendsen_thermostat(atoms, goal_temperature, timestep, thermostat_relaxation_time, mass, false);
+            berendsen_thermostat(atoms, goal_temperature, timestep, thermostat_relaxation_time, false);
             if (current_time >= thermostat_duration) {
                 use_thermostat = false;
                 std::cout << "Stop using Thermostat\n";
@@ -85,7 +86,7 @@ int main() {
             measurement_time_currently += timestep;
 
             if (wait_after_energy_injection < measurement_time_currently && measurement_time_currently < measurement_time) {
-                average_temperature += atoms.temperature(mass, false);
+                average_temperature += atoms.temperature(false);
                 steps_for_average++;
             }
             else if (measurement_time_currently >= measurement_time) {
@@ -93,10 +94,10 @@ int main() {
                 write_xyz(traj, atoms);
                 write_E_T_C(energy, added_energy_sum, average_temperature / steps_for_average, energy_increment / (average_temperature / steps_for_average - last_avg_temperature));
                 // std::cout << current_time << "/" << total_time << "\tPot energy: " << e_pot << "\tKin energy: " << atoms.e_kin(mass) << "\tTotal energy: " << e_pot + atoms.e_kin(mass) << "\tTemperature: " << atoms.temperature(mass, false) << "\n";
-                std::cout << current_time << "/" << total_time << "\tEnergy: " << e_pot + atoms.e_kin(mass) << "\tAdded energy: " << added_energy_sum << "\tTemperature: " << average_temperature / steps_for_average << "\n";
+                std::cout << current_time << "/" << total_time << "\tEnergy: " << e_pot + atoms.e_kin() << "\tAdded energy: " << added_energy_sum << "\tTemperature: " << average_temperature / steps_for_average << "\n";
 
                 // Increment energy
-                atoms.velocities *= std::sqrt(1 + energy_increment / atoms.e_kin(mass));
+                atoms.velocities *= std::sqrt(1 + energy_increment / atoms.e_kin());
                 added_energy_sum += energy_increment;
 
                 last_avg_temperature = average_temperature;

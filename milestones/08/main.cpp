@@ -7,11 +7,11 @@
 #include "write_file.h"
 #include "berendsen_thermostat.h"
 #include <iostream>
+#include <filesystem>
 
 #include <mpi.h>
 #include "mpi_support.h"
 #include "domain.h"
-
 
 void simulate(std::string cluster_num) {
     // Retrieve process infos and setup domain
@@ -21,7 +21,10 @@ void simulate(std::string cluster_num) {
 
     std::cout << "Using MPI with rank " << rank << " and size " << size << "\n";
 
-    std::string root = "../";  // Needed because the location is within the cmake-build folder
+    std::string root = "./";
+    // std::string root = "../../../";  // Needed because the location is within the cmake-build folder
+    // for (const auto & entry : std::filesystem::directory_iterator(root))
+    //     if (rank==0) std::cout << entry.path() << std::endl;
     std::string filename = root + "clusters/cluster_" + cluster_num + ".xyz";
     auto [names, positions]{read_xyz(filename)};
 
@@ -43,7 +46,7 @@ void simulate(std::string cluster_num) {
     double cluster_rim = 10;
     Domain domain{MPI_COMM_WORLD,
                   {cluster_diameter + cluster_rim, cluster_diameter + cluster_rim, cluster_diameter + cluster_rim},
-                  {2, 2, 1},
+                  {1, 1, 1},
                   {0, 0, 0}};
 
     // Shift positions of atoms, as the center of the read cluster is 0,0,0
@@ -53,12 +56,6 @@ void simulate(std::string cluster_num) {
     double neighbors_cutoff = 10;
     NeighborList neighbors_list{neighbors_cutoff};
     neighbors_list.update(atoms);
-
-    // Thermostat
-    double thermostat_relaxation_time = 500 * timestep;  // 250fs for timestep 0.5fs
-    double goal_temperature = 300;  // unit: K
-    bool use_thermostat = true;
-    double thermostat_duration = timestep * 1000;  // unit: fs
 
     // Temperature fitter
     double energy_increment = 0.2;  // unit: eV
@@ -80,20 +77,17 @@ void simulate(std::string cluster_num) {
     // Initialize forces
     e_pot = ducastelle(atoms, neighbors_list, neighbors_cutoff - 1);
 
-    if (rank == 0) std::cout << "after ducastelle\n";
-    std::cout << atoms.masses.rows() << "\n";
-    std::cout << atoms.positions.cols() << "\n";
-    std::cout << atoms.velocities.cols() << "\n";
-    std::cout << atoms.forces.cols() << "\n";
-    // while(true){}
-
     // Make domain ready for main loop
     domain.enable(atoms);
 
     domain.update_ghosts(atoms, 2 * (neighbors_cutoff - 1));
     neighbors_list.update(atoms);
 
-    if (rank == 0) std::cout << "before while\n";
+    // Before the actual simulation, run the thermostat
+    bool use_thermostat = true;
+    double thermostat_goal_tmp = 300;
+    double thermostat_relaxation_time = 500;
+    double thermostat_total_time = 1000;
 
     while (current_time < total_time) {
         // Verlet step 1
@@ -112,21 +106,36 @@ void simulate(std::string cluster_num) {
         acceleration = atoms.forces / mass;
         verlet_step2(atoms.velocities, acceleration, timestep);
 
-        // Berendsen Thermostat (fit velocities)
+        // std::cout << rank << "\tNUM COLS: " << atoms.positions.cols() << "\n";
 
-        if (int(current_time) % 1000 == 0) {
-            domain.disable(atoms);
-            if (rank == 0) {
-                // Write to files
-                write_xyz(traj, atoms);
-                write_E_T(energy, average_energy / steps_for_average, average_temperature / steps_for_average);
-                // std::cout << current_time << "/" << total_time << "\tPot energy: " << e_pot << "\tKin energy: " << atoms.e_kin(mass) << "\tTotal energy: " << e_pot + atoms.e_kin(mass) << "\tTemperature: " << atoms.temperature(mass, false) << "\n";
-                std::cout << current_time << "/" << total_time << "\tEnergy: " << average_energy / steps_for_average << "\tTemperature: " << average_temperature / steps_for_average << "\n";
+        // Berendsen Thermostat (fit velocities)
+        if (use_thermostat) {
+            berendsen_thermostat(atoms, domain, thermostat_goal_tmp, timestep, thermostat_relaxation_time, false);
+            if (current_time >= thermostat_total_time) {
+                use_thermostat = false;
+                if (rank == 0) std::cout << "Stop using Thermostat\n";
             }
-            domain.enable(atoms);
-            domain.update_ghosts(atoms, 2 * (neighbors_cutoff - 1));
-            neighbors_list.update(atoms);
-            // ducastelle?
+        // Alter temperature by rescaling velocities, then wait for some time, then measure over time, repeat
+        } else {
+            if (int(current_time) % 1000 == 0) {
+                domain.disable(atoms);
+                if (rank == 0) {
+                    // Write to files
+                    write_xyz(traj, atoms);
+                    write_E_T(energy, average_energy / steps_for_average,
+                              average_temperature / steps_for_average);
+                    // std::cout << current_time << "/" << total_time << "\tPot energy: " << e_pot << "\tKin energy: " << atoms.e_kin(mass) << "\tTotal energy: " << e_pot + atoms.e_kin(mass) << "\tTemperature: " << atoms.temperature(mass, false) << "\n";
+                    std::cout
+                        << current_time << "/" << total_time
+                        << "\tEnergy: " << average_energy / steps_for_average
+                        << "\tTemperature: "
+                        << average_temperature / steps_for_average << "\n";
+                }
+                domain.enable(atoms);
+                domain.update_ghosts(atoms, 2 * (neighbors_cutoff - 1));
+                neighbors_list.update(atoms);
+                // ducastelle?
+            }
         }
 
         // Increment time

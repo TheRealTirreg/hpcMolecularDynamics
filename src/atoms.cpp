@@ -56,11 +56,16 @@ size_t Atoms::nb_atoms() const {
     return positions.cols();
 }
 
-double Atoms::e_kin(double mass) const {
-    return 0.5 * (velocities.colwise().squaredNorm() * mass).sum();
+double Atoms::e_kin() const {
+    return 0.5 * (velocities.colwise().squaredNorm() * masses).sum();
 }
 
-double Atoms::temperature(double mass, bool lj_units) const {
+double Atoms::local_e_kin(int nb_local) const {
+    const Eigen::ArrayXd squared_norm = velocities.leftCols(nb_local).colwise().squaredNorm();
+    return 0.5 * (squared_norm * masses).sum();
+}
+
+double Atoms::temperature(bool lj_units) const {
     // E_{kin} = 3/2 * k_B * T   with k_B being the Boltzmann constant
     // <=> T = 2 * E_{kin} / (3 * k_B)
     double k_B = 1;
@@ -70,5 +75,18 @@ double Atoms::temperature(double mass, bool lj_units) const {
         k_B = 8.617333262 * 0.00001;  // unit: eV/K
     }
 
-    return 2./3. * e_kin(mass) / (k_B * nb_atoms());
+    return 2./3. * e_kin() / (k_B * nb_atoms());
+}
+
+double Atoms::local_temperature(int nb_local, bool lj_units) const {
+    // E_{kin} = 3/2 * k_B * T   with k_B being the Boltzmann constant
+    // <=> T = 2 * E_{kin} / (3 * k_B)
+    double k_B = 1;
+
+    // Use for "real units" in the EAM scenario
+    if (!lj_units) {
+        k_B = 8.617333262 * 0.00001;  // unit: eV/K
+    }
+
+    return 2./3. * local_e_kin(nb_local) / (k_B * nb_local);
 }

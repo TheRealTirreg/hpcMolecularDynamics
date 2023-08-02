@@ -25,8 +25,10 @@ class Atoms {
     void resize(int num);
 
     [[nodiscard]] size_t nb_atoms() const;
-    [[nodiscard]] double e_kin(double mass = 1) const;
-    [[nodiscard]] double temperature(double mass = 1, bool lj_units = true) const;
+    [[nodiscard]] double e_kin() const;
+    [[nodiscard]] double local_e_kin(int nb_local) const;
+    [[nodiscard]] double temperature(bool lj_units = true) const;
+    [[nodiscard]] double local_temperature(int nb_local, bool lj_units = true) const;
 };
 
 #endif // MY_MD_CODE_ATOMS_H
