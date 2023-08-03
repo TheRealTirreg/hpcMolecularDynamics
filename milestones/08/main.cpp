@@ -44,7 +44,7 @@ void simulate(int cluster_num) {
     double cluster_rim = 22;
     Domain domain{MPI_COMM_WORLD,
                   {cluster_diameter + cluster_rim, cluster_diameter + cluster_rim, cluster_diameter + cluster_rim},
-                  {2, 2, 1},
+                  {2, 2, 2},
                   {1, 1, 1}};
 
     // Shift positions of atoms, as the center of the read cluster is 0,0,0
@@ -145,7 +145,7 @@ void simulate(int cluster_num) {
                     std::cout << current_time << "/" << total_time << "\tE_kin: " << atoms.e_kin() << "\tE_pot_total: " << e_pot_total << "\tEnergy: " << energy_total << "\tTotal added energy: " << added_energy_sum << "\tTemperature: " << avg_temperature_total << "\n";
                 }
 
-                // Increment energy todo do this for all domains, not just for rank==0 (does this already work?)
+                // Increment energy
                 atoms.velocities *= std::sqrt(1 + energy_increment / atoms.e_kin());
                 added_energy_sum += energy_increment;
 
@@ -158,9 +158,6 @@ void simulate(int cluster_num) {
                 domain.enable(atoms);
                 domain.update_ghosts(atoms, 2 * (neighbors_cutoff - 1));
                 neighbors_list.update(atoms);
-
-                // Calculate forces again after the ghost update, as we have just exchanged ghost atoms todo needed?
-                e_pot_local = ducastelle_mp(atoms, neighbors_list, domain.nb_local(), neighbors_cutoff - 1);
             }
         }
 

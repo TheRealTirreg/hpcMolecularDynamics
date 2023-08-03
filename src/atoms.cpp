@@ -83,7 +83,6 @@ double Atoms::temperature(bool lj_units) const {
 double Atoms::local_temperature(int nb_local, bool lj_units) const {
     // Empty domains have no temperature
     if (nb_local == 0) {
-        std::cout << "WARNUNG TMP 0\n";  // todo remove
         return 0;
     }  // maybe return 2.7K as CMB?
 
