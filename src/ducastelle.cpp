@@ -120,7 +120,7 @@ double ducastelle(Atoms &atoms, const NeighborList &neighbor_list,
 }
 
 double ducastelle_mp(Atoms &atoms, const NeighborList &neighbor_list,
-                     Domain &domain, double cutoff, double A, double xi,
+                     int nb_local, double cutoff, double A, double xi,
                      double p, double q, double re) {
     auto cutoff_sq{cutoff * cutoff};
     double xi_sq{xi * xi};
@@ -201,5 +201,5 @@ double ducastelle_mp(Atoms &atoms, const NeighborList &neighbor_list,
     }
 
     // Return total potential energy
-    return energies.leftCols(domain.nb_local()).sum();
+    return energies.leftCols(nb_local).sum();
 }

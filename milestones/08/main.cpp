@@ -41,7 +41,7 @@ void simulate(int cluster_num) {
 
     // Set up domains
     double cluster_diameter = 2 * atoms.positions.row(0).maxCoeff();
-    double cluster_rim = 10;
+    double cluster_rim = 15;
     Domain domain{MPI_COMM_WORLD,
                   {cluster_diameter + cluster_rim, cluster_diameter + cluster_rim, cluster_diameter + cluster_rim},
                   {1, 1, 1},
@@ -77,7 +77,7 @@ void simulate(int cluster_num) {
     }
 
     // Initialize forces
-    double e_pot_local = ducastelle_mp(atoms, neighbors_list, domain, neighbors_cutoff - 1);
+    double e_pot_local = ducastelle_mp(atoms, neighbors_list, domain.nb_local(), neighbors_cutoff - 1);
 
     // Make domain ready for main loop
     domain.enable(atoms);
@@ -102,7 +102,7 @@ void simulate(int cluster_num) {
 
         // Update forces
         neighbors_list.update(atoms);
-        e_pot_local = ducastelle_mp(atoms, neighbors_list, domain, neighbors_cutoff - 1);
+        e_pot_local = ducastelle_mp(atoms, neighbors_list, domain.nb_local(), neighbors_cutoff - 1);
 
         // Verlet step 2
         acceleration = atoms.forces / mass;
@@ -128,8 +128,13 @@ void simulate(int cluster_num) {
                 steps_for_average++;
             }
             else if (measurement_time_currently >= measurement_time) {
-                if (rank == 0) std::cout << "Disabling domains on timestep " << current_time << "/" << total_time << "\n";
+                if (rank == 0) std::cout << "Disabling domains on timestep " << current_time << "/" << total_time << "\tAtoms: " << atoms.positions.cols() << "\n";
                 domain.disable(atoms);
+                if (rank == 0) std::cout << "total atoms: " << atoms.positions.cols() << "\n";
+
+                if (current_time == 170000) {
+                    int a = 0;
+                }
 
                 // Calculate total system temperatures and energies
                 avg_temperature_local /= steps_for_average;
@@ -141,7 +146,7 @@ void simulate(int cluster_num) {
                 if (rank == 0) {
                     write_xyz(traj, atoms);
                     write_E_T_C(energy, energy_total, avg_temperature_total, energy_increment / (avg_temperature_total - last_avg_temperature_total));
-                    std::cout << current_time << "/" << total_time << "\tEnergy: " << e_pot_local + atoms.e_kin() << "\tAdded energy: " << added_energy_sum << "\tTemperature: " << avg_temperature_total << "\n";
+                    std::cout << current_time << "/" << total_time << "\tE_kin: " << atoms.e_kin() << "\tE_pot_total: " << e_pot_total << "\tEnergy: " << energy_total << "\tTotal added energy: " << added_energy_sum << "\tTemperature: " << avg_temperature_total << "\n";
                 }
 
                 // Increment energy todo do this for all domains, not just for rank==0 (does this already work?)
@@ -159,7 +164,7 @@ void simulate(int cluster_num) {
                 neighbors_list.update(atoms);
 
                 // Calculate forces again after the ghost update, as we have just exchanged ghost atoms todo needed?
-                e_pot_local = ducastelle_mp(atoms, neighbors_list, domain, neighbors_cutoff - 1);
+                e_pot_local = ducastelle_mp(atoms, neighbors_list, domain.nb_local(), neighbors_cutoff - 1);
             }
         }
 
