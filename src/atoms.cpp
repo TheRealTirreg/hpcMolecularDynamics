@@ -4,6 +4,7 @@
 
 #include "atoms.h"
 #include "types.h"
+#include <iostream>
 
 Atoms::Atoms(const size_t nb_atoms, bool randomize) :
       names{}, positions{3, nb_atoms}, velocities{3, nb_atoms}, forces{3, nb_atoms}, masses{nb_atoms} {
@@ -57,7 +58,8 @@ size_t Atoms::nb_atoms() const {
 }
 
 double Atoms::e_kin() const {
-    return 0.5 * (velocities.colwise().squaredNorm() * masses).sum();
+    const Eigen::ArrayXd squared_norm = velocities.colwise().squaredNorm();
+    return 0.5 * (squared_norm * masses).sum();
 }
 
 double Atoms::local_e_kin(int nb_local) const {
@@ -79,6 +81,12 @@ double Atoms::temperature(bool lj_units) const {
 }
 
 double Atoms::local_temperature(int nb_local, bool lj_units) const {
+    // Empty domains have no temperature
+    if (nb_local == 0) {
+        std::cout << "WARNUNG TMP 0\n";  // todo remove
+        return 0;
+    }  // maybe return 2.7K as CMB?
+
     // E_{kin} = 3/2 * k_B * T   with k_B being the Boltzmann constant
     // <=> T = 2 * E_{kin} / (3 * k_B)
     double k_B = 1;

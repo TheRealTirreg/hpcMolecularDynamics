@@ -65,6 +65,7 @@ void simulate(int cluster_num) {
     double added_energy_sum = 0;  // unit: eV
     double last_avg_temperature_total = 0;
     double avg_temperature_total;
+    double e_pot_total;
     double energy_total;
 
     std::ofstream traj;
@@ -76,7 +77,7 @@ void simulate(int cluster_num) {
     }
 
     // Initialize forces
-    double e_pot_local = ducastelle(atoms, neighbors_list, neighbors_cutoff - 1);
+    double e_pot_local = ducastelle_mp(atoms, neighbors_list, domain, neighbors_cutoff - 1);
 
     // Make domain ready for main loop
     domain.enable(atoms);
@@ -101,13 +102,11 @@ void simulate(int cluster_num) {
 
         // Update forces
         neighbors_list.update(atoms);
-        e_pot_local = ducastelle(atoms, neighbors_list, neighbors_cutoff - 1);
+        e_pot_local = ducastelle_mp(atoms, neighbors_list, domain, neighbors_cutoff - 1);
 
         // Verlet step 2
         acceleration = atoms.forces / mass;
         verlet_step2(atoms.velocities, acceleration, timestep);
-
-        // std::cout << rank << "\tNUM COLS: " << atoms.positions.cols() << "\n";
 
         // Berendsen Thermostat (fit velocities)
         if (use_thermostat) {
@@ -120,7 +119,7 @@ void simulate(int cluster_num) {
         } else {
             measurement_time_currently += timestep;
 
-            if (wait_after_energy_injection < measurement_time_currently) {
+            if (wait_after_energy_injection < measurement_time_currently && measurement_time_currently < measurement_time) {
                 const double local_tmp = atoms.local_temperature(domain.nb_local(), false);
                 // avg_temperature_total is calculated by summing the average local temperature summands
                 // e.g. we have 3 atoms in 2 domains, avg_tmp_total=100K, dom(1) with 1 atom has tmp_local=60, dom(2) with 2 atoms has tmp_local=120
@@ -129,11 +128,14 @@ void simulate(int cluster_num) {
                 steps_for_average++;
             }
             else if (measurement_time_currently >= measurement_time) {
+                if (rank == 0) std::cout << "Disabling domains on timestep " << current_time << "/" << total_time << "\n";
                 domain.disable(atoms);
 
                 // Calculate total system temperatures and energies
                 avg_temperature_local /= steps_for_average;
-                // todo avg_temperature_total = domains.sum(local temperatures)
+                avg_temperature_total = MPI::allreduce(avg_temperature_local, MPI_SUM, MPI_COMM_WORLD);
+                e_pot_total = MPI::allreduce(e_pot_local, MPI_SUM, MPI_COMM_WORLD);
+                energy_total = e_pot_total + atoms.e_kin();
 
                 // Write to files
                 if (rank == 0) {
@@ -155,7 +157,9 @@ void simulate(int cluster_num) {
                 domain.enable(atoms);
                 domain.update_ghosts(atoms, 2 * (neighbors_cutoff - 1));
                 neighbors_list.update(atoms);
-                // ducastelle?
+
+                // Calculate forces again after the ghost update, as we have just exchanged ghost atoms todo needed?
+                e_pot_local = ducastelle_mp(atoms, neighbors_list, domain, neighbors_cutoff - 1);
             }
         }
 
