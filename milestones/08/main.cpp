@@ -41,11 +41,11 @@ void simulate(int cluster_num) {
 
     // Set up domains
     double cluster_diameter = 2 * atoms.positions.row(0).maxCoeff();
-    double cluster_rim = 15;
+    double cluster_rim = 22;
     Domain domain{MPI_COMM_WORLD,
                   {cluster_diameter + cluster_rim, cluster_diameter + cluster_rim, cluster_diameter + cluster_rim},
-                  {1, 1, 1},
-                  {0, 0, 0}};
+                  {2, 2, 1},
+                  {1, 1, 1}};
 
     // Shift positions of atoms, as the center of the read cluster is 0,0,0
     atoms.positions += (cluster_diameter + cluster_rim) / 2;
@@ -131,10 +131,6 @@ void simulate(int cluster_num) {
                 if (rank == 0) std::cout << "Disabling domains on timestep " << current_time << "/" << total_time << "\tAtoms: " << atoms.positions.cols() << "\n";
                 domain.disable(atoms);
                 if (rank == 0) std::cout << "total atoms: " << atoms.positions.cols() << "\n";
-
-                if (current_time == 170000) {
-                    int a = 0;
-                }
 
                 // Calculate total system temperatures and energies
                 avg_temperature_local /= steps_for_average;

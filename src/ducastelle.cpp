@@ -201,5 +201,5 @@ double ducastelle_mp(Atoms &atoms, const NeighborList &neighbor_list,
     }
 
     // Return total potential energy
-    return energies.leftCols(nb_local).sum();
+    return energies.head(nb_local).sum();
 }

@@ -42,7 +42,7 @@ Atoms::Atoms(const Positions_t &p, const Velocities_t &v) :
 }
 
 void Atoms::set_masses(double mass) {
-    masses *= mass;
+    masses.setConstant(mass);
 }
 
 void Atoms::resize(const int n) {
@@ -64,7 +64,7 @@ double Atoms::e_kin() const {
 
 double Atoms::local_e_kin(int nb_local) const {
     const Eigen::ArrayXd squared_norm = velocities.leftCols(nb_local).colwise().squaredNorm();
-    return 0.5 * (squared_norm * masses).sum();
+    return 0.5 * (squared_norm * masses.head(nb_local)).sum();
 }
 
 double Atoms::temperature(bool lj_units) const {
