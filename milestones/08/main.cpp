@@ -7,13 +7,12 @@
 #include "write_file.h"
 #include "berendsen_thermostat.h"
 #include <iostream>
-#include <filesystem>
 
 #include <mpi.h>
 #include "mpi_support.h"
 #include "domain.h"
 
-void simulate(int cluster_num) {
+void simulate(int cluster_num, double max_temperature, double energy_injection) {
     // Retrieve process infos and setup domain
     int rank; int size;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -23,8 +22,7 @@ void simulate(int cluster_num) {
 
     std::string root = "./";
     // std::string root = "../../../";  // Needed because the location is within the cmake-build folder
-    // for (const auto & entry : std::filesystem::directory_iterator(root))
-    //     if (rank==0) std::cout << entry.path() << std::endl;
+
     std::string filename = root + "clusters/cluster_" + std::to_string(cluster_num) + ".xyz";
     auto [names, positions]{read_xyz(filename)};
 
@@ -36,7 +34,7 @@ void simulate(int cluster_num) {
     double mass = mass_gold * mass_unit_factor;  // unit: g/mol
     atoms.set_masses(mass);
     double timestep = 0.5;  // unit: fs
-    double total_time = 500000;  // unit: fs
+    double max_total_time = 500000;  // unit: fs
     double current_time = 0;  // unit: fs
 
     // Set up domains
@@ -56,7 +54,6 @@ void simulate(int cluster_num) {
     neighbors_list.update(atoms);
 
     // Temperature fitter
-    double energy_increment = 0.2;  // unit: eV
     double wait_after_energy_injection = 200 * timestep;  // 100fs for timestep 0.5fs
     double measurement_time = wait_after_energy_injection + 1800 * timestep;  // 100fs + 900fs for timestep 0.5fs
     double measurement_time_currently = 0;  // unit: fs
@@ -91,7 +88,8 @@ void simulate(int cluster_num) {
     double thermostat_relaxation_time = 500;
     double thermostat_total_time = 1000;
 
-    while (current_time < total_time) {
+    // Loop until the system is too hot or the time is up
+    while (current_time < max_total_time && last_avg_temperature_total < max_temperature) {
         // Verlet step 1
         Acceleration_t acceleration = atoms.forces / mass;
         verlet_step1(atoms.positions, atoms.velocities, acceleration, timestep);
@@ -128,7 +126,7 @@ void simulate(int cluster_num) {
                 steps_for_average++;
             }
             else if (measurement_time_currently >= measurement_time) {
-                if (rank == 0) std::cout << "Disabling domains on timestep " << current_time << "/" << total_time << "\tAtoms: " << atoms.positions.cols() << "\n";
+                if (rank == 0) std::cout << "Disabling domains on timestep " << current_time << "/" << max_total_time << "\tAtoms: " << atoms.positions.cols() << "\n";
                 domain.disable(atoms);
                 if (rank == 0) std::cout << "total atoms: " << atoms.positions.cols() << "\n";
 
@@ -141,13 +139,13 @@ void simulate(int cluster_num) {
                 // Write to files
                 if (rank == 0) {
                     write_xyz(traj, atoms);
-                    write_E_T_C(energy, energy_total, avg_temperature_total, energy_increment / (avg_temperature_total - last_avg_temperature_total));
-                    std::cout << current_time << "/" << total_time << "\tE_kin: " << atoms.e_kin() << "\tE_pot_total: " << e_pot_total << "\tEnergy: " << energy_total << "\tTotal added energy: " << added_energy_sum << "\tTemperature: " << avg_temperature_total << "\n";
+                    write_E_T_C(energy, energy_total, avg_temperature_total, energy_injection / (avg_temperature_total - last_avg_temperature_total));
+                    std::cout << current_time << "/" << max_total_time << "\tE_kin: " << atoms.e_kin() << "\tE_pot_total: " << e_pot_total << "\tEnergy: " << energy_total << "\tTotal added energy: " << added_energy_sum << "\tTemperature: " << avg_temperature_total << "\n";
                 }
 
                 // Increment energy
-                atoms.velocities *= std::sqrt(1 + energy_increment / atoms.e_kin());
-                added_energy_sum += energy_increment;
+                atoms.velocities *= std::sqrt(1 + energy_injection / atoms.e_kin());
+                added_energy_sum += energy_injection;
 
                 // Reset variables and start domain separation
                 last_avg_temperature_total = avg_temperature_total;
@@ -165,17 +163,39 @@ void simulate(int cluster_num) {
         current_time += timestep;
     }
 
+    // Clean up
+    domain.disable(atoms);
     if (rank == 0) {
         traj.close();
+        energy.close();
     }
-    std::cout << "Done simulating\n";
+    std::cout << "Done simulating cluster " << cluster_num << "\n";
 }
 
 
 int main(int argc, char *argv[]) {
     MPI_Init(&argc, &argv);
 
-    simulate(55);
+    const int numbers[] = {55, 147, 309, 561, 923,
+                           1415, 2057,2869,3871,5083,
+                           6525, 8217,10179,12431,
+                           14993, 17885,21127,24739,
+                           28741};
+
+    const double energy_injections[] = {0.1, 0.3, 0.6, 1,
+                                        1.5,2.3, 3.5, 4.4,
+                                        6.7, 9.4,12.7, 16.7,
+                                        21.8, 28,36, 45,
+                                        55, 67, 82};
+
+    for (size_t i = 0; i < std::size(numbers); i++) {
+        std::cout << "\n\n===================================================\n"
+                     "SIMULATING " << numbers[i] << "\n"
+                     "===================================================\n";
+        simulate(numbers[i], 2000, energy_injections[i]);
+    }
+
+    std::cout << "Done.\n";
 
     MPI_Finalize();
 
