@@ -25,13 +25,14 @@ void simulate(int cluster_num, double max_temperature, double energy_injection) 
     // Move atoms slightly closer to each other to minimize wobble
     atoms.positions *= 0.997;
 
-    double mass_gold = 196.97;
-    double mass_unit_factor = 103.6;
-    double mass = mass_gold * mass_unit_factor;  // unit: g/mol
-    atoms.set_masses(mass);
     double timestep = 0.5;  // unit: fs
     double total_time = 500000;  // unit: fs
     double current_time = 0;  // unit: fs
+
+    double mass_gold = 196.97;  // unit: g/mol
+    double mass_unit_factor = 103.6 / timestep;
+    double mass = mass_gold * mass_unit_factor;  // unit: g/mol
+    atoms.set_masses(mass);
 
     double e_pot = 0;
 

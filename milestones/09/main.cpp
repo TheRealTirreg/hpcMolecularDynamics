@@ -12,7 +12,7 @@
 #include "mpi_support.h"
 #include "domain.h"
 
-void simulate(int cluster_num, double max_temperature, double energy_injection) {
+void simulate(std::string whisker_name) {
     // Retrieve process infos and setup domain
     int rank; int size;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -21,14 +21,15 @@ void simulate(int cluster_num, double max_temperature, double energy_injection) 
     std::cout << "Using MPI with rank " << rank << " and size " << size << "\n";
 
     std::string root = "./";
-    // std::string root = "../../../";  // Needed because the location is within the cmake-build folder
+    // std::string root = "../../../";  // Needed because the location of the executable is within the cmake-build folder
 
-    std::string filename = root + "clusters/cluster_" + std::to_string(cluster_num) + ".xyz";
+    std::string filename = root + "whiskers/" + whisker_name + ".xyz";
     auto [names, positions]{read_xyz(filename)};
 
     Atoms atoms = Atoms(Names_t(names), Positions_t(positions));
     std::cout << "num atoms: " << atoms.nb_atoms() << "\n";
 
+    double energy_injection = 0.1; // Unit: eV
     double mass_gold = 196.97;
     double mass_unit_factor = 103.6;
     double mass = mass_gold * mass_unit_factor;  // unit: g/mol
@@ -38,20 +39,24 @@ void simulate(int cluster_num, double max_temperature, double energy_injection) 
     double current_time = 0;  // unit: fs
 
     // Set up domains
-    double cluster_diameter = 2 * atoms.positions.row(0).maxCoeff();
-    double cluster_rim = 22;
+    double whisker_x = atoms.positions.row(0).maxCoeff();
+    double whisker_y = atoms.positions.row(1).maxCoeff();
+    double whisker_z = atoms.positions.row(2).maxCoeff();
+    double rim = 22;
     Domain domain{MPI_COMM_WORLD,
-                  {cluster_diameter + cluster_rim, cluster_diameter + cluster_rim, cluster_diameter + cluster_rim},
-                  {2, 2, 2},
+                  {whisker_x + rim, whisker_y + rim, whisker_z + rim},
+                  {1, 1, 1},
                   {1, 1, 1}};
 
     // Shift positions of atoms, as the center of the read cluster is 0,0,0
-    atoms.positions += (cluster_diameter + cluster_rim) / 2;
+    // atoms.positions += (diameter + rim) / 2;
 
     // Neighbors
     double neighbors_cutoff = 10;
     NeighborList neighbors_list{neighbors_cutoff};
+    std::cout << "init neighbours\n=============================================\n";
     neighbors_list.update(atoms);
+    std::cout << "after neighbours\n=============================================\n";
 
     // Temperature fitter
     double wait_after_energy_injection = 200 * timestep;  // 100fs for timestep 0.5fs
@@ -68,8 +73,8 @@ void simulate(int cluster_num, double max_temperature, double energy_injection) 
     std::ofstream traj;
     std::ofstream energy;
     if (rank == 0) {
-        traj = std::ofstream(root + "milestones/08/ovito/traj_" + std::to_string(cluster_num) + ".xyz");
-        energy = std::ofstream(root + "milestones/08/ovito/energy_" + std::to_string(cluster_num) + ".csv");
+        traj = std::ofstream(root + "milestones/09/ovito/traj_" + whisker_name + ".xyz");
+        energy = std::ofstream(root + "milestones/09/ovito/energy_" + whisker_name + ".csv");
         write_xyz(traj, atoms);
     }
 
@@ -89,7 +94,7 @@ void simulate(int cluster_num, double max_temperature, double energy_injection) 
     double thermostat_total_time = 1000;
 
     // Loop until the system is too hot or the time is up
-    while (current_time < max_total_time && last_avg_temperature_total < max_temperature) {
+    while (current_time < max_total_time) {
         // Verlet step 1
         Acceleration_t acceleration = atoms.forces / mass;
         verlet_step1(atoms.positions, atoms.velocities, acceleration, timestep);
@@ -122,24 +127,27 @@ void simulate(int cluster_num, double max_temperature, double energy_injection) 
                 // avg_temperature_total is calculated by summing the average local temperature summands
                 // e.g. we have 3 atoms in 2 domains, avg_tmp_total=100K, dom(1) with 1 atom has tmp_local=60, dom(2) with 2 atoms has tmp_local=120
                 //      then avg_tmp_total = (60*1/3) + (120*2/3)
-                avg_temperature_local += local_tmp * domain.nb_local() / cluster_num;
+                avg_temperature_local += local_tmp * domain.nb_local() / atoms.nb_atoms();
                 steps_for_average++;
             }
             else if (measurement_time_currently >= measurement_time) {
                 if (rank == 0) std::cout << "Disabling domains on timestep " << current_time << "/" << max_total_time << "\tAtoms: " << atoms.positions.cols() << "\n";
                 domain.disable(atoms);
                 if (rank == 0) std::cout << "total atoms: " << atoms.positions.cols() << "\n";
+                domain.scale(atoms, {1, 1, 5});
+                std::cout << "scaled domain z to 5\n";
 
                 // Calculate total system temperatures and energies
                 avg_temperature_local /= steps_for_average;
                 avg_temperature_total = MPI::allreduce(avg_temperature_local, MPI_SUM, MPI_COMM_WORLD);
                 e_pot_total = MPI::allreduce(e_pot_local, MPI_SUM, MPI_COMM_WORLD);
                 energy_total = e_pot_total + atoms.e_kin();
+                const double heat_capacity = energy_injection / (avg_temperature_total - last_avg_temperature_total);
 
                 // Write to files
                 if (rank == 0) {
                     write_xyz(traj, atoms);
-                    write_E_T_C(energy, energy_total, avg_temperature_total, energy_injection / (avg_temperature_total - last_avg_temperature_total));
+                    write_E_T_C(energy, energy_total, avg_temperature_total, heat_capacity);
                     std::cout << current_time << "/" << max_total_time << "\tE_kin: " << atoms.e_kin() << "\tE_pot_total: " << e_pot_total << "\tEnergy: " << energy_total << "\tTotal added energy: " << added_energy_sum << "\tTemperature: " << avg_temperature_total << "\n";
                 }
 
@@ -169,31 +177,14 @@ void simulate(int cluster_num, double max_temperature, double energy_injection) 
         traj.close();
         energy.close();
     }
-    std::cout << "Done simulating cluster " << cluster_num << "\n";
+    std::cout << "Done simulating " << whisker_name << "\n";
 }
 
 
 int main(int argc, char *argv[]) {
     MPI_Init(&argc, &argv);
 
-    const int numbers[] = {55, 147, 309, 561, 923,
-                           1415, 2057,2869,3871,5083,
-                           6525, 8217,10179,12431,
-                           14993, 17885,21127,24739,
-                           28741};
-
-    const double energy_injections[] = {0.1, 0.5, 1, 1.5,
-                                        2.3, 3.5, 4.4,6.7,
-                                        9.4,12.7, 16.7,21.8,
-                                        28,36, 45,55,
-                                        67, 82, 100};
-
-    for (size_t i = 0; i < std::size(numbers); i++) {
-        std::cout << "\n\n===================================================\n"
-                     "SIMULATING " << numbers[i] << "\n"
-                     "===================================================\n";
-        simulate(numbers[i], 2000, energy_injections[i]);
-    }
+    simulate("whisker_small");
 
     std::cout << "Done.\n";
 
