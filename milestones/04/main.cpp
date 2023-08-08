@@ -7,7 +7,7 @@
 #include <iostream>
 
 
-int main() {
+void simulate(double timestep_) {
     std::cout << "Starting...\n";
     auto [names, positions, velocities]
         {read_xyz_with_velocities("milestones/04/lj54.xyz")};
@@ -16,8 +16,8 @@ int main() {
     double epsilon = 1;
     double sigma = 1;
     double mass = 1;
-    double timestep = 0.001 * std::sqrt(mass * sigma * sigma / epsilon);
-    double total_time = 100 * std::sqrt(mass * sigma * sigma / epsilon);
+    double timestep = timestep_ * std::sqrt(mass * sigma * sigma / epsilon);
+    double total_time = 1000 * std::sqrt(mass * sigma * sigma / epsilon);
 
     double e_pot = 0;
 
@@ -26,8 +26,8 @@ int main() {
     int write_every_n_steps = 1000;
     int write_counter = 0;
 
-    std::ofstream traj("milestones/04/ovito/traj.xyz");
-    std::ofstream energy("milestones/04/ovito/energy.csv");
+    std::ofstream traj("milestones/04/ovito/traj_" + std::to_string(timestep_) + ".xyz");
+    std::ofstream energy("milestones/04/ovito/energy_" + std::to_string(timestep_) + ".csv");
 
     // Initialize forces
     e_pot = lj_direct_summation_vectorized_comparism(atoms, epsilon, sigma);
@@ -65,6 +65,16 @@ int main() {
     }
 
     traj.close();
-    std::cout << "Done simulating\n";
+    std::cout << "Done simulating ts " << timestep_ << "\n";
+}
+
+
+int main() {
+    double timesteps[] = {0.025};
+
+    for (double ts : timesteps) {
+        simulate(ts);
+    }
+
     return 0;
 }
