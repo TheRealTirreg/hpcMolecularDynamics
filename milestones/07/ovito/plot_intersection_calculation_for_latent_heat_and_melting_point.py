@@ -25,10 +25,10 @@ mycolors = ['tab:green', 'tab:orange', 'tab:pink', 'tab:blue',
 
 plt.figure(figsize=(8, 5), dpi=80)
 
-# Clear intersections and latened heat files
+# Clear intersections and latent heat files
 with open("intersection points", "w") as f:
     f.write("")
-with open("latened heat", "w") as f:
+with open("latent heat", "w") as f:
     f.write("")
 
 for i, df in enumerate(dfs):
@@ -75,8 +75,8 @@ for i, df in enumerate(dfs):
     left_idx = np.argwhere(np.diff(np.sign(a2 + b2 * xseq - vertical_line))).flatten()[0]
     right_idx = np.argwhere(np.diff(np.sign(a + b * xseq - vertical_line))).flatten()[0]
 
-    # Save latened heat
-    with open("latened heat", "a") as f:
+    # Save latent heat
+    with open("latent heat", "a") as f:
         f.write(f"{numbers[i]}\t{xseq[left_idx] - xseq[right_idx]}\n")
 
     # Draw latent heat line and melting point
