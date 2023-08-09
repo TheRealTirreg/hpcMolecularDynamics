@@ -19,7 +19,6 @@ with open('latent heat', "r") as f:
 # Decoration
 plt.xlabel(r'Cluster Size')
 plt.ylabel(r'Energy in $eV$')
-plt.xscale("log")
 plt.yticks(fontsize=12, alpha=.7)
 plt.title("Latent Heat", fontsize=22)
 
