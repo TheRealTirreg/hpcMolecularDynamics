@@ -102,7 +102,7 @@ plt.gca().spines["bottom"].set_alpha(0.5)
 plt.gca().spines["right"].set_alpha(0.0)
 plt.gca().spines["left"].set_alpha(0.5)
 
-path = r"LH_vs_N"
+path = r"LH_vs_N" + "_all"
 plt.savefig(path + ".png")
 
 plt.show()  # clears the plot
