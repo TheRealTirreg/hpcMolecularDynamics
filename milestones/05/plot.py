@@ -31,7 +31,7 @@ plt.xticks(df[headers[0]])
 plt.xticks(fontsize=12, alpha=.7)
 plt.xlabel(r'Number of Atoms')
 plt.ylabel(r'Execution time in $s$')
-plt.title("Execution time MS05", fontsize=22)
+plt.title("Execution Times Neighbor Lists", fontsize=22)
 plt.legend(loc="upper left")
 # matplotx.line_labels()
 
