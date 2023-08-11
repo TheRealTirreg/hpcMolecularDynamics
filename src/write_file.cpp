@@ -10,6 +10,8 @@ void write_energy(std::ofstream &file, double epot, double ekin, double temperat
 }
 
 void write_E_T(std::ofstream &file, double etotal, double tmp) {
+    if (!file.is_open()) throw std::runtime_error("Could not open energy file.");
+
     file << etotal << "\t" << tmp << "\n";
 }
 

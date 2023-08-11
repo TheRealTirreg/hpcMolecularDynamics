@@ -78,22 +78,22 @@ void simulate(std::string whisker_name) {
 
     // Make domain ready for main loop
     domain.enable(atoms);
-    domain.scale(atoms, {whisker_x + rim, whisker_y + rim, current_z});
-    if (rank == 0) std::cout << "Scaling to " << whisker_x + rim << ", " << whisker_y + rim << ", " << current_z << "\n";
+    // domain.scale(atoms, {whisker_x + rim, whisker_y + rim, current_z});
+    // if (rank == 0) std::cout << "Scaling to " << whisker_x + rim << ", " << whisker_y + rim << ", " << current_z << "\n";
     domain.update_ghosts(atoms, 2 * (neighbors_cutoff - 0.1));
     neighbors_list.update(atoms);
 
-    /*
     // Write initial state
-     domain.disable(atoms)
+    // domain.disable(atoms);
     if (rank == 0) {
         traj = std::ofstream(root + "milestones/09/ovito/traj_" + whisker_name + ".xyz");
         energy = std::ofstream(root + "milestones/09/ovito/energy_" + whisker_name + ".csv");
+        write_E_T(energy, 0, 0);
         write_xyz(traj, atoms);
+        std::cout << "Wrote initial state\n";
     }
-    domain.update_ghosts(atoms, 2 * (neighbors_cutoff - 0.1));
-    neighbors_list.update(atoms);
-    */
+    // domain.update_ghosts(atoms, 2 * (neighbors_cutoff - 0.1));
+    // neighbors_list.update(atoms);
 
     // Before the actual simulation, run the thermostat
     bool use_thermostat = true;
@@ -161,9 +161,9 @@ void simulate(std::string whisker_name) {
                 added_energy_sum += energy_injection;
 
                 // Rescaling domains
-                current_z += z_increment;
-                domain.scale(atoms, {whisker_x + rim, whisker_y + rim, current_z});
-                if (rank == 0) std::cout << "Scaling to " << whisker_x + rim << ", " << whisker_y + rim << ", " << current_z << "\n";
+                // current_z += z_increment;
+                // domain.scale(atoms, {whisker_x + rim, whisker_y + rim, current_z});
+                // if (rank == 0) std::cout << "Scaling to " << whisker_x + rim << ", " << whisker_y + rim << ", " << current_z << "\n";
 
                 // Reset variables and start domain separation
                 last_avg_temperature_total = avg_temperature_total;
