@@ -93,11 +93,10 @@ void simulate(int cluster_num, double max_temperature, double energy_injection) 
             else if (measurement_time_currently >= measurement_time) {
                 // Calculate temperature
                 average_temperature /= steps_for_average;
-                const double heat_capacity = energy_injection / (average_temperature - last_avg_temperature);
 
                 // Write to files
                 write_xyz(traj, atoms);
-                write_E_T_C(energy, added_energy_sum, average_temperature, heat_capacity);
+                write_E_T(energy, added_energy_sum, average_temperature);
                 std::cout << current_time << "/" << total_time << "\tEnergy: " << e_pot + atoms.e_kin() << "\tTotal added energy: " << added_energy_sum << "\tTemperature: " << average_temperature << "\n";
 
                 // Increment energy

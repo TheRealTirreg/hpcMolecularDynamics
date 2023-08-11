@@ -29,7 +29,7 @@ void simulate(std::string whisker_name) {
     Atoms atoms = Atoms(Names_t(names), Positions_t(positions));
     std::cout << "num atoms: " << atoms.nb_atoms() << "\n";
 
-    double energy_injection = 0.1; // Unit: eV
+    double energy_injection = 0.0; // Unit: eV
     double mass_gold = 196.97;
     double mass_unit_factor = 103.6;
     double mass = mass_gold * mass_unit_factor;  // unit: g/mol
@@ -42,21 +42,20 @@ void simulate(std::string whisker_name) {
     double whisker_x = atoms.positions.row(0).maxCoeff();
     double whisker_y = atoms.positions.row(1).maxCoeff();
     double whisker_z = atoms.positions.row(2).maxCoeff();
-    double rim = 22;
+    std::cout << "Whisker dimensions: " << whisker_x << ", " << whisker_y << ", " << whisker_z << "\n";
+    double current_z = whisker_z;
+    double z_increment = 5;
+    double rim = 5;
     Domain domain{MPI_COMM_WORLD,
-                  {whisker_x + rim, whisker_y + rim, whisker_z + rim},
+                  {whisker_x + rim, whisker_y + rim, current_z},
                   {1, 1, 1},
                   {1, 1, 1}};
-
-    // Shift positions of atoms, as the center of the read cluster is 0,0,0
-    // atoms.positions += (diameter + rim) / 2;
+    if (rank == 0) std::cout << "Setting domain size to " << whisker_x + rim << ", " << whisker_y + rim << ", " << current_z << "\n";
 
     // Neighbors
     double neighbors_cutoff = 10;
     NeighborList neighbors_list{neighbors_cutoff};
-    std::cout << "init neighbours\n=============================================\n";
     neighbors_list.update(atoms);
-    std::cout << "after neighbours\n=============================================\n";
 
     // Temperature fitter
     double wait_after_energy_injection = 200 * timestep;  // 100fs for timestep 0.5fs
@@ -70,22 +69,31 @@ void simulate(std::string whisker_name) {
     double e_pot_total;
     double energy_total;
 
+    // Initialize IO
     std::ofstream traj;
     std::ofstream energy;
+
+    // Initialize forces
+    double e_pot_local = ducastelle_mp(atoms, neighbors_list, domain.nb_local(), neighbors_cutoff - 0.1);
+
+    // Make domain ready for main loop
+    domain.enable(atoms);
+    domain.scale(atoms, {whisker_x + rim, whisker_y + rim, current_z});
+    if (rank == 0) std::cout << "Scaling to " << whisker_x + rim << ", " << whisker_y + rim << ", " << current_z << "\n";
+    domain.update_ghosts(atoms, 2 * (neighbors_cutoff - 0.1));
+    neighbors_list.update(atoms);
+
+    /*
+    // Write initial state
+     domain.disable(atoms)
     if (rank == 0) {
         traj = std::ofstream(root + "milestones/09/ovito/traj_" + whisker_name + ".xyz");
         energy = std::ofstream(root + "milestones/09/ovito/energy_" + whisker_name + ".csv");
         write_xyz(traj, atoms);
     }
-
-    // Initialize forces
-    double e_pot_local = ducastelle_mp(atoms, neighbors_list, domain.nb_local(), neighbors_cutoff - 1);
-
-    // Make domain ready for main loop
-    domain.enable(atoms);
-
-    domain.update_ghosts(atoms, 2 * (neighbors_cutoff - 1));
+    domain.update_ghosts(atoms, 2 * (neighbors_cutoff - 0.1));
     neighbors_list.update(atoms);
+    */
 
     // Before the actual simulation, run the thermostat
     bool use_thermostat = true;
@@ -93,7 +101,7 @@ void simulate(std::string whisker_name) {
     double thermostat_relaxation_time = 500;
     double thermostat_total_time = 1000;
 
-    // Loop until the system is too hot or the time is up
+    // Main simulation loop
     while (current_time < max_total_time) {
         // Verlet step 1
         Acceleration_t acceleration = atoms.forces / mass;
@@ -101,11 +109,11 @@ void simulate(std::string whisker_name) {
 
         // Exchange information between domains
         domain.exchange_atoms(atoms);
-        domain.update_ghosts(atoms, 2 * (neighbors_cutoff - 1));
+        domain.update_ghosts(atoms, 2 * (neighbors_cutoff - 0.1));
 
         // Update forces
         neighbors_list.update(atoms);
-        e_pot_local = ducastelle_mp(atoms, neighbors_list, domain.nb_local(), neighbors_cutoff - 1);
+        e_pot_local = ducastelle_mp(atoms, neighbors_list, domain.nb_local(), neighbors_cutoff - 0.1);
 
         // Verlet step 2
         acceleration = atoms.forces / mass;
@@ -134,26 +142,28 @@ void simulate(std::string whisker_name) {
                 if (rank == 0) std::cout << "Disabling domains on timestep " << current_time << "/" << max_total_time << "\tAtoms: " << atoms.positions.cols() << "\n";
                 domain.disable(atoms);
                 if (rank == 0) std::cout << "total atoms: " << atoms.positions.cols() << "\n";
-                domain.scale(atoms, {1, 1, 5});
-                std::cout << "scaled domain z to 5\n";
 
                 // Calculate total system temperatures and energies
                 avg_temperature_local /= steps_for_average;
                 avg_temperature_total = MPI::allreduce(avg_temperature_local, MPI_SUM, MPI_COMM_WORLD);
                 e_pot_total = MPI::allreduce(e_pot_local, MPI_SUM, MPI_COMM_WORLD);
                 energy_total = e_pot_total + atoms.e_kin();
-                const double heat_capacity = energy_injection / (avg_temperature_total - last_avg_temperature_total);
 
                 // Write to files
                 if (rank == 0) {
                     write_xyz(traj, atoms);
-                    write_E_T_C(energy, energy_total, avg_temperature_total, heat_capacity);
+                    write_E_T(energy, energy_total, avg_temperature_total);
                     std::cout << current_time << "/" << max_total_time << "\tE_kin: " << atoms.e_kin() << "\tE_pot_total: " << e_pot_total << "\tEnergy: " << energy_total << "\tTotal added energy: " << added_energy_sum << "\tTemperature: " << avg_temperature_total << "\n";
                 }
 
                 // Increment energy
                 atoms.velocities *= std::sqrt(1 + energy_injection / atoms.e_kin());
                 added_energy_sum += energy_injection;
+
+                // Rescaling domains
+                current_z += z_increment;
+                domain.scale(atoms, {whisker_x + rim, whisker_y + rim, current_z});
+                if (rank == 0) std::cout << "Scaling to " << whisker_x + rim << ", " << whisker_y + rim << ", " << current_z << "\n";
 
                 // Reset variables and start domain separation
                 last_avg_temperature_total = avg_temperature_total;
@@ -162,7 +172,7 @@ void simulate(std::string whisker_name) {
                 measurement_time_currently = 0;
 
                 domain.enable(atoms);
-                domain.update_ghosts(atoms, 2 * (neighbors_cutoff - 1));
+                domain.update_ghosts(atoms, 2 * (neighbors_cutoff - 0.1));
                 neighbors_list.update(atoms);
             }
         }

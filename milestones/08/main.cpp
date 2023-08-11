@@ -139,7 +139,7 @@ void simulate(int cluster_num, double max_temperature, double energy_injection) 
                 // Write to files
                 if (rank == 0) {
                     write_xyz(traj, atoms);
-                    write_E_T_C(energy, energy_total, avg_temperature_total, energy_injection / (avg_temperature_total - last_avg_temperature_total));
+                    write_E_T(energy, energy_total, avg_temperature_total);
                     std::cout << current_time << "/" << max_total_time << "\tE_kin: " << atoms.e_kin() << "\tE_pot_total: " << e_pot_total << "\tEnergy: " << energy_total << "\tTotal added energy: " << added_energy_sum << "\tTemperature: " << avg_temperature_total << "\n";
                 }
 

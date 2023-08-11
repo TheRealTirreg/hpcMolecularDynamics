@@ -13,10 +13,6 @@ void write_E_T(std::ofstream &file, double etotal, double tmp) {
     file << etotal << "\t" << tmp << "\n";
 }
 
-void write_E_T_C(std::ofstream &file, double etotal, double tmp, double heat_capacity) {
-    file << etotal << "\t" << tmp << "\t" << heat_capacity << "\n";
-}
-
 void write_lattice_cube(const std::string &filename, int n, double lattice_const_epsilon) {
     std::ofstream file(filename);
     int cube_root_n = std::floor(cbrt(n));
