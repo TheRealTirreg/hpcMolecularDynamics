@@ -44,6 +44,7 @@ for i, df in enumerate(dfs):
 plt.figure(figsize=(12, 7), dpi=100)
 for i, df in enumerate(dfs):
     t, hc = zip(*dfs_heat_capacities[i])
+    t, hc = t[1:], hc[1:]
     plt.plot(t, hc, color=mycolors[i % len(mycolors)], label=numbers[i])
 
 # Decoration
