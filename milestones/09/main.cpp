@@ -88,7 +88,6 @@ void simulate(std::string whisker_name) {
     if (rank == 0) {
         traj = std::ofstream(root + "milestones/09/ovito/traj_" + whisker_name + ".xyz");
         energy = std::ofstream(root + "milestones/09/ovito/energy_" + whisker_name + ".csv");
-        write_E_T(energy, 0, 0);
         write_xyz(traj, atoms);
         std::cout << "Wrote initial state\n";
     }
