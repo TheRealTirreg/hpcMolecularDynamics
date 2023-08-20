@@ -22,8 +22,6 @@
 * SOFTWARE.
 */
 
-#include <iostream>
-
 #include "ducastelle.h"
 
 /*
@@ -200,7 +198,6 @@ double ducastelle_mp(Atoms &atoms, const NeighborList &neighbor_list,
                 // stress without any normalization 1/V
                 atoms.stress.col(i) = (distance_vector.matrix() * pair_force.transpose().matrix()).diagonal();
                 atoms.stress.col(j) = (-distance_vector.matrix() * pair_force.transpose().matrix()).diagonal();
-
             }
         }
     }

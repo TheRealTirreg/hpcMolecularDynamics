@@ -216,7 +216,7 @@ void Domain::exchange_atoms(Atoms &atoms) {
     // Invalidate ghosts (we don't want to send those).
     atoms.resize(nb_local_);
 
-    // Loop as long as there is something left to be send. Multiple iterations
+    // Loop as long as there is something left to be sent. Multiple iterations
     // happen if atoms are farther than one subdomain away from where they
     // should be. (This should only happen under exceptional circumstances.)
     Eigen::Index nb_send_global{1};
@@ -227,7 +227,7 @@ void Domain::exchange_atoms(Atoms &atoms) {
             nb_send_local += _exchange_atoms(atoms, dim);
         }
 
-        // Determine how much data was send in this iteration.
+        // Determine how much data was sent in this iteration.
         nb_send_global = MPI::allreduce(nb_send_local, MPI_SUM, comm_);
     }
 }

@@ -1,11 +1,11 @@
 #include "atoms.h"
-#include "types.h"
-#include "neighbors.h"
-#include "ducastelle.h"
-#include "verlet.h"
-#include "xyz.h"
-#include "write_file.h"
 #include "berendsen_thermostat.h"
+#include "ducastelle.h"
+#include "neighbors.h"
+#include "types.h"
+#include "verlet.h"
+#include "write_file.h"
+#include "xyz.h"
 #include <iostream>
 
 #include <mpi.h>
@@ -20,8 +20,8 @@ void simulate(const std::string &whisker_name) {
 
     std::cout << "Using MPI with rank " << rank << " and size " << size << "\n";
 
-    std::string root = "./";
-    // std::string root = "../../../";  // Needed because the location of the executable is within the cmake-build folder
+    // std::string root = "./";
+    std::string root = "../../../";  // Needed because the location of the executable is within the cmake-build folder
 
     std::string filename = root + "whiskers/" + whisker_name + ".xyz";
     auto [names, positions]{read_xyz(filename)};
@@ -42,19 +42,17 @@ void simulate(const std::string &whisker_name) {
     double whisker_y = atoms.positions.row(1).maxCoeff();
     double whisker_z = atoms.positions.row(2).maxCoeff();
     std::cout << "Whisker dimensions: " << whisker_x << ", " << whisker_y << ", " << whisker_z << "\n";
-    double current_z = whisker_z;
-    double z_increment = 0.001;
+    double z_increment = 0.000002;
     double rim = 10;
     Domain domain{MPI_COMM_WORLD,
-                  {whisker_x + rim, whisker_y + rim, current_z},
-                  {1, 1, 1},
+                  {whisker_x + rim, whisker_y + rim, whisker_z},
+                  {1, 1, 4},
                   {0, 0, 1}};
-    if (rank == 0) std::cout << "Setting domain size to " << whisker_x + rim << ", " << whisker_y + rim << ", " << current_z << "\n";
+    if (rank == 0) std::cout << "Setting domain size to " << whisker_x + rim << ", " << whisker_y + rim << ", " << whisker_z << "\n";
 
     // Neighbors
     double neighbors_cutoff = 10;
     NeighborList neighbors_list{neighbors_cutoff};
-    neighbors_list.update(atoms);
 
     // Temperature fitter
     double wait_after_energy_injection = 200 * timestep;  // 100fs for timestep 0.5fs
@@ -81,8 +79,6 @@ void simulate(const std::string &whisker_name) {
     if (rank == 0) {
         traj = std::ofstream(root + "milestones/09/ovito/traj_" + whisker_name + ".xyz");
         energy = std::ofstream(root + "milestones/09/ovito/energy_" + whisker_name + ".csv");
-        // write_xyz(traj, atoms);
-        // std::cout << "Wrote initial state\n";
     }
 
     // Before the actual simulation, run the thermostat
@@ -98,8 +94,8 @@ void simulate(const std::string &whisker_name) {
         verlet_step1(atoms.positions, atoms.velocities, acceleration, timestep);
 
         // Scale domains
-        current_z += z_increment;
-        domain.scale(atoms, {whisker_x + rim, whisker_y + rim, current_z});
+        const double increment_factor = 1. + z_increment * (current_time / timestep);
+        domain.scale(atoms, {whisker_x + rim, whisker_y + rim, whisker_z * increment_factor});
 
         // Exchange information between domains
         domain.exchange_atoms(atoms);
@@ -152,15 +148,18 @@ void simulate(const std::string &whisker_name) {
                 // Write to files
                 if (rank == 0) {
                     write_xyz(traj, atoms);
-                    write_E_T(energy, energy_total, avg_temperature_total);
+                    write_E_T_Stress(energy, energy_total, avg_temperature_total, stress, whisker_z * increment_factor);
 
                     std::cout << current_time << "/" << max_total_time
                               << "\tE_kin: " << atoms.e_kin()
                               << "\tE_pot_total: " << e_pot_total
                               << "\tEnergy: " << energy_total
                               << "\tTemperature: " << avg_temperature_total
-                              << "\tCurrent domain z-size: " << current_z
-                              << "\tStress:\n" << stress << "\n\n";
+                              << "\tCurrent domain z-size: " << whisker_z * (1. + z_increment * (current_time / timestep))
+                              << "\tStress: " << stress.transpose()
+                              << "\tMin-z: " << atoms.positions.row(2).minCoeff()
+                              << "\tMax-z: " << atoms.positions.row(2).maxCoeff()
+                              << "\n\n";
                 }
 
                 // Reset variables and start domain separation

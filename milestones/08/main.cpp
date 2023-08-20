@@ -1,11 +1,11 @@
 #include "atoms.h"
-#include "types.h"
-#include "neighbors.h"
-#include "ducastelle.h"
-#include "verlet.h"
-#include "xyz.h"
-#include "write_file.h"
 #include "berendsen_thermostat.h"
+#include "ducastelle.h"
+#include "neighbors.h"
+#include "types.h"
+#include "verlet.h"
+#include "write_file.h"
+#include "xyz.h"
 #include <iostream>
 
 #include <mpi.h>
