@@ -40,13 +40,13 @@ void simulate(const std::string &whisker_name) {
     // Set up domains
     double whisker_x = atoms.positions.row(0).maxCoeff();
     double whisker_y = atoms.positions.row(1).maxCoeff();
-    double whisker_z = atoms.positions.row(2).maxCoeff();
+    double whisker_z = atoms.positions.row(2).maxCoeff() + 1;
     std::cout << "Whisker dimensions: " << whisker_x << ", " << whisker_y << ", " << whisker_z << "\n";
-    double z_increment = 0.000002;
+    double z_increment = 0.000001;
     double rim = 10;
     Domain domain{MPI_COMM_WORLD,
                   {whisker_x + rim, whisker_y + rim, whisker_z},
-                  {1, 1, 4},
+                  {1, 1, 10},
                   {0, 0, 1}};
     if (rank == 0) std::cout << "Setting domain size to " << whisker_x + rim << ", " << whisker_y + rim << ", " << whisker_z << "\n";
 
@@ -63,6 +63,12 @@ void simulate(const std::string &whisker_name) {
     double avg_temperature_total;
     double e_pot_total;
     double energy_total;
+
+    // Stress
+    Eigen::Array3d avg_stress_total;
+    Eigen::Array3d avg_stress_local;
+    avg_stress_total.setZero();
+    avg_stress_local.setZero();
 
     // Initialize IO
     std::ofstream traj;
@@ -82,7 +88,7 @@ void simulate(const std::string &whisker_name) {
     }
 
     // Before the actual simulation, run the thermostat
-    bool use_thermostat = true;
+    bool use_thermostat = false;
     double thermostat_goal_tmp = 300;
     double thermostat_relaxation_time = 500;
     double thermostat_total_time = 1000;
@@ -102,7 +108,7 @@ void simulate(const std::string &whisker_name) {
         domain.update_ghosts(atoms, 2 * (neighbors_cutoff - 0.1));
 
         // Update forces
-        neighbors_list.update(atoms);
+        if (domain.nb_local() > 0) neighbors_list.update(atoms);
         e_pot_local = ducastelle_mp(atoms, neighbors_list, domain.nb_local(), neighbors_cutoff - 0.1);
 
         // Verlet step 2
@@ -126,6 +132,10 @@ void simulate(const std::string &whisker_name) {
                 // e.g. we have 3 atoms in 2 domains, avg_tmp_total=100K, dom(1) with 1 atom has tmp_local=60, dom(2) with 2 atoms has tmp_local=120
                 //      then avg_tmp_total = (60*1/3) + (120*2/3)
                 avg_temperature_local += local_tmp * domain.nb_local() / atoms.nb_atoms();
+
+                // Add current stress (without ghost atoms) to later calculate the avg
+                avg_stress_local += atoms.stress.leftCols(domain.nb_local()).rowwise().sum();
+
                 steps_for_average++;
             }
             else if (measurement_time_currently >= measurement_time) {
@@ -138,17 +148,15 @@ void simulate(const std::string &whisker_name) {
                 avg_temperature_total = MPI::allreduce(avg_temperature_local, MPI_SUM, MPI_COMM_WORLD);
                 e_pot_total = MPI::allreduce(e_pot_local, MPI_SUM, MPI_COMM_WORLD);
                 energy_total = e_pot_total + atoms.e_kin();
-                Eigen::Array3d stress_local = atoms.stress.rowwise().sum();
-                Eigen::Array3d stress;
-                stress.setZero();
-                stress[0] += MPI::allreduce(stress_local[0], MPI_SUM, MPI_COMM_WORLD);
-                stress[1] += MPI::allreduce(stress_local[1], MPI_SUM, MPI_COMM_WORLD);
-                stress[2] += MPI::allreduce(stress_local[2], MPI_SUM, MPI_COMM_WORLD);
+                avg_stress_local /= steps_for_average;
+                avg_stress_total[0] = MPI::allreduce(avg_stress_local[0], MPI_SUM, MPI_COMM_WORLD);
+                avg_stress_total[1] = MPI::allreduce(avg_stress_local[1], MPI_SUM, MPI_COMM_WORLD);
+                avg_stress_total[2] = MPI::allreduce(avg_stress_local[2], MPI_SUM, MPI_COMM_WORLD);
 
                 // Write to files
                 if (rank == 0) {
                     write_xyz(traj, atoms);
-                    write_E_T_Stress(energy, energy_total, avg_temperature_total, stress, whisker_z * increment_factor);
+                    write_E_T_Stress(energy, energy_total, avg_temperature_total, avg_stress_total, whisker_z * increment_factor);
 
                     std::cout << current_time << "/" << max_total_time
                               << "\tE_kin: " << atoms.e_kin()
@@ -156,13 +164,15 @@ void simulate(const std::string &whisker_name) {
                               << "\tEnergy: " << energy_total
                               << "\tTemperature: " << avg_temperature_total
                               << "\tCurrent domain z-size: " << whisker_z * (1. + z_increment * (current_time / timestep))
-                              << "\tStress: " << stress.transpose()
+                              << "\tStress: " << avg_stress_total.transpose()
                               << "\tMin-z: " << atoms.positions.row(2).minCoeff()
                               << "\tMax-z: " << atoms.positions.row(2).maxCoeff()
                               << "\n\n";
                 }
 
                 // Reset variables and start domain separation
+                avg_stress_local.setZero();
+                avg_temperature_local = 0;
                 steps_for_average = 0;
                 measurement_time_currently = 0;
 
@@ -189,7 +199,7 @@ void simulate(const std::string &whisker_name) {
 int main(int argc, char *argv[]) {
     MPI_Init(&argc, &argv);
 
-    simulate("whisker_small");
+    simulate("whisker_large");
 
     std::cout << "Done.\n";
 
