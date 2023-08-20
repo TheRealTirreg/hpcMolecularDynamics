@@ -19,6 +19,7 @@ enable_testing()
 # We work with C++17 (-std=c++17)
 set(CMAKE_CXX_STANDARD 17)
 
+
 # Try to find Eigen if it is installed
 find_package(Eigen3 3.4.0 EXACT NO_MODULE)
 

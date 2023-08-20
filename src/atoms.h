@@ -15,6 +15,7 @@ class Atoms {
     Velocities_t velocities;
     Forces_t forces;
     Masses_t masses;
+    Stress_t stress;
 
     explicit Atoms(size_t nb_atoms, bool randomize = false);
     explicit Atoms(const Positions_t &p);

@@ -13,7 +13,7 @@ typedef Eigen::Array3Xd Forces_t;
 typedef Eigen::ArrayXd  Masses_t;
 typedef Eigen::Array3Xd Acceleration_t;
 typedef std::vector<std::string> Names_t;
-typedef Eigen::ArrayXi NeighborList_t;
+typedef Eigen::Array3Xd Stress_t;
 typedef std::vector<std::string> Names_t;
 
 

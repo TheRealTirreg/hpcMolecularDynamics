@@ -12,7 +12,7 @@ void write_energy(std::ofstream &file, double epot, double ekin, double temperat
 void write_E_T(std::ofstream &file, double etotal, double tmp) {
     if (!file.is_open()) throw std::runtime_error("Could not open energy file.");
 
-    file << etotal << "\t" << tmp << "\n";
+    file << etotal << "\t" << tmp << std::endl;
 }
 
 void write_lattice_cube(const std::string &filename, int n, double lattice_const_epsilon) {

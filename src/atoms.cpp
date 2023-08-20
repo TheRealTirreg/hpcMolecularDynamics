@@ -7,7 +7,7 @@
 #include <iostream>
 
 Atoms::Atoms(const size_t nb_atoms, bool randomize) :
-      names{}, positions{3, nb_atoms}, velocities{3, nb_atoms}, forces{3, nb_atoms}, masses{nb_atoms} {
+      names{}, positions{3, nb_atoms}, velocities{3, nb_atoms}, forces{3, nb_atoms}, masses{nb_atoms}, stress{3, nb_atoms}  {
     if (randomize) {
         positions.setRandom();
         velocities.setRandom();
@@ -18,27 +18,31 @@ Atoms::Atoms(const size_t nb_atoms, bool randomize) :
         forces.setZero();
     }
     masses.setOnes();
+    stress.setZero();
 }
 
 Atoms::Atoms(const Positions_t &p) :
-      names{}, positions{p}, velocities{3, p.cols()}, forces{3, p.cols()}, masses{p.cols()} {
+      names{}, positions{p}, velocities{3, p.cols()}, forces{3, p.cols()}, masses{p.cols()}, stress{3, p.cols()}  {
     velocities.setZero();
     forces.setZero();
     masses.setOnes();
+    stress.setZero();
 }
 
 Atoms::Atoms(const Names_t &names, const Positions_t &p) :
-      names{names}, positions{p}, velocities{3, p.cols()}, forces{3, p.cols()}, masses{p.cols()} {
+      names{names}, positions{p}, velocities{3, p.cols()}, forces{3, p.cols()}, masses{p.cols()}, stress{3, p.cols()} {
     velocities.setZero();
     forces.setZero();
     masses.setOnes();
+    stress.setZero();
 }
 
 Atoms::Atoms(const Positions_t &p, const Velocities_t &v) :
-      names{}, positions{p}, velocities{v}, forces{3, p.cols()}, masses{p.cols()} {
+      names{}, positions{p}, velocities{v}, forces{3, p.cols()}, masses{p.cols()}, stress{3, p.cols()}  {
     assert(p.cols() == v.cols());
     forces.setZero();
     masses.setOnes();
+    stress.setZero();
 }
 
 void Atoms::set_masses(double mass) {
@@ -51,6 +55,7 @@ void Atoms::resize(const int n) {
     forces.conservativeResize(3, n);
     masses.conservativeResize(n);
     names.resize(n);
+    stress.conservativeResize(3, n);
 }
 
 size_t Atoms::nb_atoms() const {
