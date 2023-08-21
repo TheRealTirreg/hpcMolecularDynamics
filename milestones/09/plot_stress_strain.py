@@ -8,7 +8,7 @@ labels = [r"$E_\mathrm{total}$", r"Temperature}"]
 headers = ["Etotal", "Temperature", "xStress", "yStress", "zStress", "zDomainSize"]
 
 # Import Data
-df = pd.read_csv(r'ovito/energy_whisker_small.csv', header=None, sep="\t")
+df = pd.read_csv(r'ovito/energy_whisker_large.csv', header=None, sep="\t")
 df.columns = headers
 
 # Draw Plot
